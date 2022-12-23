@@ -35,9 +35,6 @@ public class ActivityServiceImpl implements IActivityService {
     public Activity update(Activity activity) {
         Activity activity1 = activityRepository.findActivityById(activity.getId()).orElseThrow(
                 () -> new EntityNotFoundException("Activity with id: " + activity.getId() + ", not available."));
-
-        //activity1.setDatz(activity.getName());
-
         return activityRepository.save(activity1);
     }
 
