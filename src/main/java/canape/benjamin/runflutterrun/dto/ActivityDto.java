@@ -8,8 +8,8 @@ import lombok.Data;
 @Data
 public class ActivityDto {
     private long id;
-    private Date startDate;
-    private Date endDate;
+    private Date startDatetime;
+    private Date endDatetime;
     private long distance;
 
     private long speed;
