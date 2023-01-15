@@ -1,6 +1,8 @@
 package canape.benjamin.runflutterrun.dto;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import lombok.Data;
@@ -10,11 +12,11 @@ public class ActivityDto {
     private long id;
     private Date startDatetime;
     private Date endDatetime;
-    private long distance;
+    private Double distance;
 
-    private long speed;
+    private Double speed;
 
     private long time;
 
-    private Set<LocationDto> locations;
+    private List<LocationDto> locations;
 }

@@ -48,7 +48,7 @@ public class ActivityServiceImpl implements IActivityService {
         Date end = activity.endDatetime;
 
         long time = Math.abs(end.getTime() - start.getTime());
-        Float speed = activity.distance / (time / 3600000);
+        Double speed = activity.distance / (time / 3600000);
 
         activity.setSpeed(speed);
         return activity;

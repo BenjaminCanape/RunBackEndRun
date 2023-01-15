@@ -21,10 +21,10 @@ public class Activity extends AbstractEntity {
     public Date endDatetime;
 
     @Column(name = "globalDistance")
-    public Float distance;
+    public Double distance;
 
     @Column(name = "speed")
-    public Float speed;
+    public Double speed;
 
     @OneToMany(targetEntity = Location.class , orphanRemoval = true, mappedBy = "activity", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Location> locations;
