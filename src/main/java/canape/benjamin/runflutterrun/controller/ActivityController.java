@@ -49,7 +49,7 @@ public class ActivityController {
     }
 
     @GetMapping(value = "/{id}", produces = "application/json")
-    public ActivityDto retrieve(@PathVariable int id) {
+    public ActivityDto retrieve(@PathVariable long id) {
         return convertToDTO(activityCrudService.getById(id));
     }
 
@@ -59,7 +59,7 @@ public class ActivityController {
     }
 
     @DeleteMapping(value = "/")
-    public String delete(int id) {
+    public String delete(long id) {
         activityCrudService.delete(id);
         return "Done";
     }
