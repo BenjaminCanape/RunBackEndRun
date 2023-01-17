@@ -10,6 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface ActivityRepository extends CrudRepository<Activity, Long> {
-    @Query("select a from Activity a left join fetch a.locations where a.id = :id")
+    @Query("select a from Activity a left join fetch a.locations locations where a.id = :id")
     public Optional<Activity> findActivityById(@Param("id") long id);
 }

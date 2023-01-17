@@ -66,12 +66,15 @@ public class ActivityController {
 
     private Activity convertToEntity (ActivityDto activityDto)
     {
-        List<Location> locations = new ArrayList<>();
-        activityDto.getLocations().forEach((location) ->
-                locations.add(modelMapper.map(location, Location.class))
-        );
-
         Activity activity = modelMapper.map(activityDto, Activity.class);
+
+        List<Location> locations = new ArrayList<>();
+        activityDto.getLocations().forEach((location) -> {
+                Location loc = modelMapper.map(location, Location.class);
+                loc.setActivity(activity);
+                locations.add(loc);
+        });
+
         activity.setLocations(locations);
         return activity;
     }
