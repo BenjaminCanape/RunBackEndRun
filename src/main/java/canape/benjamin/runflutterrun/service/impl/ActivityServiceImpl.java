@@ -26,29 +26,36 @@ public class ActivityServiceImpl implements IActivityService {
     }
 
     @Override
-    public Activity getById(int id) {
+    public Activity getById(long id) {
         return activityRepository.findActivityById(id).orElseThrow(
                 () -> new EntityNotFoundException("Activity with id: " + id + ", not available."));
     }
 
     @Override
     public Activity update(Activity activity) {
+        Activity finalActivity = activity;
         Activity activity1 = activityRepository.findActivityById(activity.getId()).orElseThrow(
-                () -> new EntityNotFoundException("Activity with id: " + activity.getId() + ", not available."));
+                () -> new EntityNotFoundException("Activity with id: " + finalActivity.getId() + ", not available."));
+        activity = calculateMetrics(activity);
+        activity1.setDistance(activity.getDistance());
+        activity1.setStartDatetime(activity.getStartDatetime());
+        activity1.setEndDatetime(activity.getEndDatetime());
+        activity1.setSpeed(activity.getSpeed());
         return activityRepository.save(activity1);
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(long id) {
         activityRepository.deleteById(id);
     }
 
     private Activity calculateMetrics(Activity activity){
-        Date start = activity.startDatetime;
-        Date end = activity.endDatetime;
+        Date start = activity.getStartDatetime();
+        Date end = activity.getEndDatetime();
 
-        long time = Math.abs(end.getTime() - start.getTime());
-        Float speed = activity.distance / (time / 3600000);
+        long time = end.getTime() - start.getTime();
+        Double ms = Double.valueOf(time / 3600000);
+        Double speed = activity.getDistance() / ms;
 
         activity.setSpeed(speed);
         return activity;

@@ -2,6 +2,8 @@ package canape.benjamin.runflutterrun.controller;
 
 import canape.benjamin.runflutterrun.dto.ActivityDto;
 
+import canape.benjamin.runflutterrun.dto.LocationDto;
+import canape.benjamin.runflutterrun.model.Location;
 import org.modelmapper.ModelMapper;
 import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.service.IActivityService;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -46,7 +49,7 @@ public class ActivityController {
     }
 
     @GetMapping(value = "/{id}", produces = "application/json")
-    public ActivityDto retrieve(@PathVariable int id) {
+    public ActivityDto retrieve(@PathVariable long id) {
         return convertToDTO(activityCrudService.getById(id));
     }
 
@@ -56,7 +59,7 @@ public class ActivityController {
     }
 
     @DeleteMapping(value = "/")
-    public String delete(int id) {
+    public String delete(long id) {
         activityCrudService.delete(id);
         return "Done";
     }
@@ -64,14 +67,30 @@ public class ActivityController {
     private Activity convertToEntity (ActivityDto activityDto)
     {
         Activity activity = modelMapper.map(activityDto, Activity.class);
+
+        List<Location> locations = new ArrayList<>();
+        activityDto.getLocations().forEach((location) -> {
+                Location loc = modelMapper.map(location, Location.class);
+                loc.setActivity(activity);
+                locations.add(loc);
+        });
+
+        activity.setLocations(locations);
         return activity;
     }
 
     private ActivityDto convertToDTO (Activity activity)
     {
+        List<LocationDto> locations = new ArrayList<>();
+        activity.getLocations().forEach((location) ->
+                locations.add(modelMapper.map(location, LocationDto.class))
+        );
+
+
         ActivityDto activityDto = modelMapper.map(activity, ActivityDto.class);
         long time = Math.abs(activity.getEndDatetime().getTime() - activity.getStartDatetime().getTime());
         activityDto.setTime(time);
+        activityDto.setLocations(locations);
         return activityDto;
     }
 }

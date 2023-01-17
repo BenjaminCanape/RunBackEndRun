@@ -9,9 +9,9 @@ public interface ICrudService<T> {
     Iterable<T> getAll();
     T create(T t);
 
-    T getById(int id);
+    T getById(long id);
 
     T update(T t);
 
-    void delete(int id);
+    void delete(long id);
 }
