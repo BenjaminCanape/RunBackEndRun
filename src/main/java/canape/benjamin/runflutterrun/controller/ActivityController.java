@@ -50,7 +50,7 @@ public class ActivityController {
 
     @GetMapping(value = "/{id}", produces = "application/json")
     public ActivityDto retrieve(@PathVariable long id) {
-        return convertToDTO(activityCrudService.getById(id));
+        return convertToDTO(activityCrudService.getById(id), true);
     }
 
     @PutMapping(value = "/", consumes = "application/json")
@@ -79,13 +79,17 @@ public class ActivityController {
         return activity;
     }
 
-    private ActivityDto convertToDTO (Activity activity)
-    {
-        List<LocationDto> locations = new ArrayList<>();
-        activity.getLocations().forEach((location) ->
-                locations.add(modelMapper.map(location, LocationDto.class))
-        );
+    private ActivityDto convertToDTO (Activity activity) {
+        return convertToDTO(activity, false);
+    }
 
+    private ActivityDto convertToDTO (Activity activity, Boolean fetchLocations) {
+        List<LocationDto> locations = new ArrayList<>();
+        if (fetchLocations) {
+            activity.getLocations().forEach((location) ->
+                    locations.add(modelMapper.map(location, LocationDto.class))
+            );
+        }
 
         ActivityDto activityDto = modelMapper.map(activity, ActivityDto.class);
         long time = Math.abs(activity.getEndDatetime().getTime() - activity.getStartDatetime().getTime());
