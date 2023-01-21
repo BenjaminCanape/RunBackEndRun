@@ -5,6 +5,7 @@ import canape.benjamin.runflutterrun.repository.ActivityRepository;
 import canape.benjamin.runflutterrun.service.IActivityService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -16,7 +17,7 @@ public class ActivityServiceImpl implements IActivityService {
     private ActivityRepository activityRepository;
 
     public Iterable<Activity> getAll() {
-        return activityRepository.findAll();
+        return activityRepository.findAllByOrderByStartDatetimeDesc();
     }
 
     @Override
