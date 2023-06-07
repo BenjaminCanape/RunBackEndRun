@@ -55,9 +55,11 @@ public class ActivityServiceImpl implements IActivityService {
         Date end = activity.getEndDatetime();
 
         long time = end.getTime() - start.getTime();
-        Double ms = Double.valueOf(time / 3600000);
-        Double speed = activity.getDistance() / ms;
-
+        double speed = 0;
+        if(time > 0 ){
+            double ms = (double) time / 3600000.0;
+            speed = activity.getDistance() / ms;
+        }
         activity.setSpeed(speed);
         return activity;
     }
