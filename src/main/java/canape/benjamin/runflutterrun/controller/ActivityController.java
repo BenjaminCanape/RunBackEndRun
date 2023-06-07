@@ -59,7 +59,7 @@ public class ActivityController {
     }
 
     @DeleteMapping(value = "/")
-    public String delete(long id) {
+    public String delete(@RequestParam("id") Long id) {
         activityCrudService.delete(id);
         return "Done";
     }
