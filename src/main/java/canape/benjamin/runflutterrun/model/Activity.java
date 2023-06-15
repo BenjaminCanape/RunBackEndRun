@@ -14,6 +14,11 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class Activity extends AbstractEntity {
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    public String type;
+
     @Column(name = "startDatetime")
     public Date startDatetime;
 

@@ -38,6 +38,7 @@ public class ActivityServiceImpl implements IActivityService {
         Activity activity1 = activityRepository.findActivityById(activity.getId()).orElseThrow(
                 () -> new EntityNotFoundException("Activity with id: " + finalActivity.getId() + ", not available."));
         activity = calculateMetrics(activity);
+        activity1.setType(activity.getType());
         activity1.setDistance(activity.getDistance());
         activity1.setStartDatetime(activity.getStartDatetime());
         activity1.setEndDatetime(activity.getEndDatetime());
