@@ -17,7 +17,7 @@ public class Activity extends AbstractEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
-    public String type;
+    public ActivityType type;
 
     @Column(name = "startDatetime")
     public Date startDatetime;
