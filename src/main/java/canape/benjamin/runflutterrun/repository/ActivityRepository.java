@@ -1,7 +1,6 @@
 package canape.benjamin.runflutterrun.repository;
 
 import canape.benjamin.runflutterrun.model.Activity;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

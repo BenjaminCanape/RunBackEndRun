@@ -15,7 +15,7 @@ import java.util.Date;
 public class Location extends AbstractEntity {
 
     @ManyToOne
-    @JoinColumn(name="activity_id")
+    @JoinColumn(name = "activity_id")
     private Activity activity;
 
     @Column(name = "datetime")

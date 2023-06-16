@@ -15,6 +15,10 @@ import java.util.List;
 @NoArgsConstructor
 public class Activity extends AbstractEntity {
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     public ActivityType type;
@@ -31,7 +35,7 @@ public class Activity extends AbstractEntity {
     @Column(name = "speed")
     public Double speed;
 
-    @OneToMany(targetEntity = Location.class , orphanRemoval = true, mappedBy = "activity", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(targetEntity = Location.class, orphanRemoval = true, mappedBy = "activity", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Location> locations;
 
 }
