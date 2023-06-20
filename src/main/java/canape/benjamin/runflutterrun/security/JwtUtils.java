@@ -11,6 +11,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
 
@@ -36,6 +37,10 @@ public class JwtUtils {
     }
 
     public String getUserNameFromJwtToken(String token) {
+        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
+            token = token.substring(7, token.length());
+        }
+        
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
                 .build()
                 .verify(token);
@@ -44,6 +49,11 @@ public class JwtUtils {
 
     public boolean validateJwtToken(String authToken) {
         try {
+
+            if (StringUtils.hasText(authToken) && authToken.startsWith("Bearer ")) {
+                authToken = authToken.substring(7, authToken.length());
+            }
+
             DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
                     .build()
                     .verify(authToken);

@@ -1,19 +1,23 @@
 package canape.benjamin.runflutterrun.service.impl;
 
 import canape.benjamin.runflutterrun.model.Activity;
+import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repository.ActivityRepository;
+import canape.benjamin.runflutterrun.repository.UserRepository;
+import canape.benjamin.runflutterrun.security.JwtUtils;
 import canape.benjamin.runflutterrun.service.IActivityService;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
 @Service
+@AllArgsConstructor
 public class ActivityServiceImpl implements IActivityService {
-
-    @Autowired
-    private ActivityRepository activityRepository;
+    private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
+    private final ActivityRepository activityRepository;
 
     public Iterable<Activity> getAll() {
         return activityRepository.findAllByOrderByStartDatetimeDesc();
@@ -22,6 +26,22 @@ public class ActivityServiceImpl implements IActivityService {
     @Override
     public Activity create(Activity activity) {
         Activity activityWithMetrics = calculateMetrics(activity);
+        return activityRepository.save(activityWithMetrics);
+    }
+
+    @Override
+    public Iterable<Activity> getAll(String token) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User u = userRepository.findByUsername(username);
+        return activityRepository.findAllByOrderByStartDatetimeDescAndUser(u);
+    }
+
+    @Override
+    public Activity create(Activity activity, String token){
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User u = userRepository.findByUsername(username);
+        Activity activityWithMetrics = calculateMetrics(activity);
+        activityWithMetrics.setUser(u);
         return activityRepository.save(activityWithMetrics);
     }
 

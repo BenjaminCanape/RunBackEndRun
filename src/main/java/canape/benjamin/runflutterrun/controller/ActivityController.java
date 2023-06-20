@@ -28,16 +28,16 @@ public class ActivityController {
     private IActivityService activityCrudService;
 
     @GetMapping(value = "/all", produces = "application/json")
-    public List<ActivityDto> getAll() {
+    public List<ActivityDto> getAll(@RequestHeader (name="Authorization") String token) {
         return StreamSupport
-                .stream(activityCrudService.getAll().spliterator(), false)
+                .stream(activityCrudService.getAll(token).spliterator(), false)
                 .collect(Collectors.toList()).stream().map(activity -> convertToDTO(activity))
                 .collect(Collectors.toList());
     }
 
     @PostMapping(value = "/", consumes = "application/json")
-    public ActivityDto create(@RequestBody ActivityDto activity) {
-        return convertToDTO(activityCrudService.create(convertToEntity(activity)));
+    public ActivityDto create(@RequestBody ActivityDto activity, @RequestHeader (name="Authorization") String token) {
+        return convertToDTO(activityCrudService.create(convertToEntity(activity), token));
     }
 
     @GetMapping(value = "/{id}", produces = "application/json")
