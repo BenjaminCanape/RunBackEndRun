@@ -1,7 +1,7 @@
 package canape.benjamin.runflutterrun.repository;
 
 import canape.benjamin.runflutterrun.model.Activity;
-import org.springframework.data.domain.Sort;
+import canape.benjamin.runflutterrun.model.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -15,4 +15,7 @@ public interface ActivityRepository extends CrudRepository<Activity, Long> {
     public Optional<Activity> findActivityById(@Param("id") long id);
 
     public Iterable<Activity> findAllByOrderByStartDatetimeDesc();
+
+    @Query("select a from Activity a left join fetch a.user u where u = :user")
+    public Iterable<Activity> findAllByOrderByStartDatetimeDescAndUser(@Param("user") User user);
 }
