@@ -3,11 +3,10 @@ package canape.benjamin.runflutterrun.security;
 import canape.benjamin.runflutterrun.model.User;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -28,19 +27,21 @@ public class JwtUtils {
     }
 
     public String generateTokenFromUsername(String username) {
-        long currentTimeMillis = System.currentTimeMillis();
-        return JWT.create()
+        Date currentDate = new Date();
+        String token = JWT.create()
                 .withSubject(username)
-                .withIssuedAt(new Date(currentTimeMillis))
-                .withExpiresAt(new Date(currentTimeMillis + EXPIRATION_TIME))
+                .withIssuedAt(currentDate)
+                .withExpiresAt(new Date(currentDate.getTime() + EXPIRATION_TIME))
                 .sign(Algorithm.HMAC512(SECRET));
+
+        TokenManager.addValidToken(token);
+
+        return token;
     }
 
     public String getUserNameFromJwtToken(String token) {
-        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
-            token = token.substring(7, token.length());
-        }
-        
+        token = extractTokenFromBearerToken(token);
+
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
                 .build()
                 .verify(token);
@@ -48,28 +49,32 @@ public class JwtUtils {
     }
 
     public boolean validateJwtToken(String authToken) {
-        try {
+        if (TokenManager.isValidToken(authToken)) {
+            try {
+                String token = extractTokenFromBearerToken(authToken);
 
-            if (StringUtils.hasText(authToken) && authToken.startsWith("Bearer ")) {
-                authToken = authToken.substring(7, authToken.length());
-            }
-
-            DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
-                    .build()
-                    .verify(authToken);
-            return true;
-        } catch (JWTVerificationException e) {
-            if (e instanceof TokenExpiredException) {
+                DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
+                        .build()
+                        .verify(token);
+                return true;
+            } catch (TokenExpiredException e) {
                 LOGGER.error("JwtUtils | validateJwtToken | JWT token is expired: {}", e.getMessage());
-            } else if (e instanceof SignatureVerificationException) {
-                LOGGER.error("JwtUtils | validateJwtToken | Invalid signature: {}", e.getMessage());
-            } else if (e instanceof InvalidClaimException) {
-                LOGGER.error("JwtUtils | validateJwtToken | Invalid claim: {}", e.getMessage());
-            } else {
+            } catch (JWTVerificationException e) {
                 LOGGER.error("JwtUtils | validateJwtToken | JWT verification failed: {}", e.getMessage());
             }
         }
-
         return false;
+    }
+
+    private String extractTokenFromBearerToken(String bearerToken) {
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return bearerToken;
+    }
+
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        return extractTokenFromBearerToken(bearerToken);
     }
 }

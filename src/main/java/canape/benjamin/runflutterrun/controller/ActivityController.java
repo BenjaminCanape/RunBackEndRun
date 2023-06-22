@@ -8,7 +8,10 @@ import canape.benjamin.runflutterrun.service.IActivityService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,32 +31,52 @@ public class ActivityController {
     private IActivityService activityCrudService;
 
     @GetMapping(value = "/all", produces = "application/json")
-    public List<ActivityDto> getAll(@RequestHeader (name="Authorization") String token) {
-        return StreamSupport
-                .stream(activityCrudService.getAll(token).spliterator(), false)
-                .collect(Collectors.toList()).stream().map(activity -> convertToDTO(activity))
-                .collect(Collectors.toList());
+    public List<ActivityDto> getAll(@RequestHeader(name = "Authorization") String token) {
+        try {
+            return StreamSupport
+                    .stream(activityCrudService.getAll(token).spliterator(), false)
+                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(activity))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activities", e);
+        }
     }
 
     @PostMapping(value = "/", consumes = "application/json")
-    public ActivityDto create(@RequestBody ActivityDto activity, @RequestHeader (name="Authorization") String token) {
-        return convertToDTO(activityCrudService.create(convertToEntity(activity), token));
+    public ActivityDto create(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
+        try {
+            return convertToDTO(activityCrudService.create(convertToEntity(activity), token));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create activity", e);
+        }
     }
 
     @GetMapping(value = "/{id}", produces = "application/json")
     public ActivityDto retrieve(@PathVariable long id) {
-        return convertToDTO(activityCrudService.getById(id), true);
+        try {
+            return convertToDTO(activityCrudService.getById(id), true);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activity", e);
+        }
     }
 
     @PutMapping(value = "/", consumes = "application/json")
     public ActivityDto update(@RequestBody ActivityDto activity) {
-        return convertToDTO(activityCrudService.update(convertToEntity(activity)));
+        try {
+            return convertToDTO(activityCrudService.update(convertToEntity(activity)));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update activity", e);
+        }
     }
 
     @DeleteMapping(value = "/")
-    public String delete(@RequestParam(value = "id") Long id) {
-        activityCrudService.delete(id);
-        return "Done";
+    public ResponseEntity<String> delete(@RequestParam(value = "id") Long id) {
+        try {
+            activityCrudService.delete(id);
+            return ResponseEntity.ok("Activity successfully deleted");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Activity deletion failed");
+        }
     }
 
     private Activity convertToEntity(ActivityDto activityDto) {

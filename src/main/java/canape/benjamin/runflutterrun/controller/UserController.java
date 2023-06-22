@@ -6,8 +6,11 @@ import canape.benjamin.runflutterrun.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api")
@@ -25,19 +28,31 @@ public class UserController {
     private AuthenticationManager authenticationManager;
 
     @PostMapping(value = "/user/register", consumes = "application/json")
-    public Integer create(@RequestBody UserDto userDto) {
-        return userCrudService.create(convertToEntity(userDto));
+    public Long create(@RequestBody UserDto userDto) {
+        try {
+            return userCrudService.create(convertToEntity(userDto));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create user", e);
+        }
     }
 
     @PutMapping(value = "/private/user/editPassword", consumes = "application/json")
-    public Integer editPassword(@RequestBody UserDto userDto) {
-        return userCrudService.editPassword(convertToEntity(userDto));
+    public Long editPassword(@RequestBody UserDto userDto) {
+        try {
+            return userCrudService.editPassword(convertToEntity(userDto));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed edit password", e);
+        }
     }
 
     @DeleteMapping(value = "/private/user")
-    public String delete(@RequestParam(value = "id") Long id) {
-        userCrudService.delete(id);
-        return "Done";
+    public ResponseEntity<String> delete(@RequestParam(value = "id") Long id) {
+        try {
+            userCrudService.delete(id);
+            return ResponseEntity.ok("User successfully deleted");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User deletion failed");
+        }
     }
 
     private User convertToEntity(UserDto userDto) {

@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table(name = "Activity")
+@Table(name = "activity")
 @Getter
 @Setter
 @NoArgsConstructor
