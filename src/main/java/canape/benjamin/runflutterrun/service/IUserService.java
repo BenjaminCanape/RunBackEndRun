@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface IUserService {
-    Integer create(User user);
+    Long create(User user);
 
     User findByUsername(String username);
 
-    Integer editPassword(User user);
+    Long editPassword(User user);
 
     void delete(long id);
 }

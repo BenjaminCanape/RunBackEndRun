@@ -3,7 +3,6 @@ package canape.benjamin.runflutterrun.config;
 import canape.benjamin.runflutterrun.security.AuthEntryPointJwt;
 import canape.benjamin.runflutterrun.security.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,6 +34,10 @@ public class SecurityConfig {
     public CustomAuthenticationSuccessHandler authenticationSuccessHandler;
     @Autowired
     public CustomAuthenticationFailureHandler authenticationFailureHandler;
+
+    @Autowired
+    public CustomLogoutSuccessHandler logoutSuccessHandler;
+
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
     @Autowired
@@ -60,6 +63,11 @@ public class SecurityConfig {
                 .loginPage(SIGN_UP_URL)
                 .successHandler(authenticationSuccessHandler)
                 .failureHandler(authenticationFailureHandler)
+                .permitAll()
+                .and()
+                .logout()
+                .logoutUrl("/api/private/user/logout")
+                .logoutSuccessHandler(logoutSuccessHandler)
                 .permitAll();
 
         return http.build();

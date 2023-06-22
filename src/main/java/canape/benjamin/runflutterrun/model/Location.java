@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.util.Date;
 
 @Entity
-@Table(name = "Location")
+@Table(name = "location")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,11 +19,11 @@ public class Location extends AbstractEntity {
     private Activity activity;
 
     @Column(name = "datetime")
-    public Date datetime;
+    private Date datetime;
 
     @Column(name = "latitude")
-    public Double latitude;
+    private Double latitude;
 
     @Column(name = "longitude")
-    public Double longitude;
+    private Double longitude;
 }

@@ -12,10 +12,10 @@ import java.util.Optional;
 @Repository
 public interface ActivityRepository extends CrudRepository<Activity, Long> {
     @Query("select a from Activity a left join fetch a.locations locations where a.id = :id")
-    public Optional<Activity> findActivityById(@Param("id") long id);
+    Optional<Activity> findActivityById(@Param("id") long id);
 
-    public Iterable<Activity> findAllByOrderByStartDatetimeDesc();
+    Iterable<Activity> findAllByOrderByStartDatetimeDesc();
 
     @Query("select a from Activity a left join fetch a.user u where u = :user")
-    public Iterable<Activity> findAllByOrderByStartDatetimeDescAndUser(@Param("user") User user);
+    Iterable<Activity> findAllByOrderByStartDatetimeDescAndUser(@Param("user") User user);
 }

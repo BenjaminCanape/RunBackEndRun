@@ -32,37 +32,38 @@ public class ActivityServiceImpl implements IActivityService {
     @Override
     public Iterable<Activity> getAll(String token) {
         String username = jwtUtils.getUserNameFromJwtToken(token);
-        User u = userRepository.findByUsername(username);
-        return activityRepository.findAllByOrderByStartDatetimeDescAndUser(u);
+        User user = userRepository.findByUsername(username);
+        return activityRepository.findAllByOrderByStartDatetimeDescAndUser(user);
     }
 
     @Override
-    public Activity create(Activity activity, String token){
+    public Activity create(Activity activity, String token) {
         String username = jwtUtils.getUserNameFromJwtToken(token);
-        User u = userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(username);
         Activity activityWithMetrics = calculateMetrics(activity);
-        activityWithMetrics.setUser(u);
+        activityWithMetrics.setUser(user);
         return activityRepository.save(activityWithMetrics);
     }
 
     @Override
     public Activity getById(long id) {
-        return activityRepository.findActivityById(id).orElseThrow(
-                () -> new EntityNotFoundException("Activity with id: " + id + ", not available."));
+        return activityRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Activity with id: " + id + " is not available."));
     }
 
     @Override
     public Activity update(Activity activity) {
-        Activity finalActivity = activity;
-        Activity activity1 = activityRepository.findActivityById(activity.getId()).orElseThrow(
-                () -> new EntityNotFoundException("Activity with id: " + finalActivity.getId() + ", not available."));
-        activity = calculateMetrics(activity);
-        activity1.setType(activity.getType());
-        activity1.setDistance(activity.getDistance());
-        activity1.setStartDatetime(activity.getStartDatetime());
-        activity1.setEndDatetime(activity.getEndDatetime());
-        activity1.setSpeed(activity.getSpeed());
-        return activityRepository.save(activity1);
+        Activity existingActivity = activityRepository.findById(activity.getId()).orElseThrow(
+                () -> new EntityNotFoundException("Activity with id: " + activity.getId() + " is not available."));
+
+        Activity updatedActivity = calculateMetrics(activity);
+        existingActivity.setType(updatedActivity.getType());
+        existingActivity.setDistance(updatedActivity.getDistance());
+        existingActivity.setStartDatetime(updatedActivity.getStartDatetime());
+        existingActivity.setEndDatetime(updatedActivity.getEndDatetime());
+        existingActivity.setSpeed(updatedActivity.getSpeed());
+
+        return activityRepository.save(existingActivity);
     }
 
     @Override
@@ -77,8 +78,8 @@ public class ActivityServiceImpl implements IActivityService {
         long time = end.getTime() - start.getTime();
         double speed = 0;
         if (time > 0) {
-            double ms = (double) time / 3600000.0;
-            speed = activity.getDistance() / ms;
+            double hours = (double) time / 3600000.0;
+            speed = activity.getDistance() / hours;
         }
         activity.setSpeed(speed);
         return activity;

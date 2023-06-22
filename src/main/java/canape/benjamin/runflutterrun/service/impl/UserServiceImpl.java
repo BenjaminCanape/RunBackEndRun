@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
 @Service
 public class UserServiceImpl implements IUserService {
 
@@ -18,12 +19,11 @@ public class UserServiceImpl implements IUserService {
     private UserRepository userRepository;
 
     @Override
-    public Integer create(User user) {
+    public Long create(User user) {
         if (userRepository.findByUsername(user.getUsername()) != null) {
-            throw new RuntimeException("An account already exist for this email");
+            throw new RuntimeException("An account already exists for this email");
         }
-        user.setPassword(bCryptPasswordEncoder
-                .encode(user.getPassword()));
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         return userRepository.save(user).getId();
     }
 
@@ -32,13 +32,12 @@ public class UserServiceImpl implements IUserService {
         return userRepository.findByUsername(username);
     }
 
-    public Integer editPassword(User user) {
-        User finalUser = user;
-        User user1 = userRepository.findUserById(user.getId()).orElseThrow(
-                () -> new EntityNotFoundException("User with id: " + finalUser.getId() + ", not available."));
-        user1.setPassword(bCryptPasswordEncoder
-                .encode(user.getPassword()));
-        return userRepository.save(user1).getId();
+    @Override
+    public Long editPassword(User user) {
+        User existingUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new EntityNotFoundException("User with id: " + user.getId() + " not found."));
+        existingUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        return userRepository.save(existingUser).getId();
     }
 
     @Override
