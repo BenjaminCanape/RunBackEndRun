@@ -6,4 +6,6 @@ public class SecurityConstants {
     public static final long EXPIRATION_TIME = 900_000;
     public static final String SIGN_UP_URL = "/api/user/login";
     public static final String REGISTER_URL = "/api/user/register";
+
+    public static final String LOGOUT_URL = "/api/private/user/logout";
 }

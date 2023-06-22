@@ -20,12 +20,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+import static canape.benjamin.runflutterrun.security.SecurityConstants.SIGN_UP_URL;
+
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthTokenFilter.class);
     private static final String AUTHORIZATION_HEADER_PREFIX = "Bearer ";
-    private static final String LOGIN_PATH = "/api/user/login";
+    private static final String LOGIN_PATH = SIGN_UP_URL;
 
     @Autowired
     private JwtUtils jwtUtils;
