@@ -46,9 +46,9 @@ public class UserController {
     }
 
     @DeleteMapping(value = "/private/user")
-    public ResponseEntity<String> delete(@RequestParam(value = "id") Long id) {
+    public ResponseEntity<String> delete(@RequestHeader(name = "Authorization") String token) {
         try {
-            userCrudService.delete(id);
+            userCrudService.delete(token);
             return ResponseEntity.ok("User successfully deleted");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User deletion failed");

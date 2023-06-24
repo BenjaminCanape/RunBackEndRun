@@ -11,5 +11,5 @@ public interface IUserService {
 
     Long editPassword(User user);
 
-    void delete(long id);
+    void delete(String token);
 }

@@ -2,6 +2,7 @@ package canape.benjamin.runflutterrun.service.impl;
 
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repository.UserRepository;
+import canape.benjamin.runflutterrun.security.JwtUtils;
 import canape.benjamin.runflutterrun.service.IUserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements IUserService {
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -41,7 +45,9 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public void delete(long id) {
-        userRepository.deleteById(id);
+    public void delete(String token) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+        userRepository.deleteById(user.getId());
     }
 }
