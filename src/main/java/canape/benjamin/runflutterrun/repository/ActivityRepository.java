@@ -16,6 +16,6 @@ public interface ActivityRepository extends CrudRepository<Activity, Long> {
 
     Iterable<Activity> findAllByOrderByStartDatetimeDesc();
 
-    @Query("select a from Activity a left join fetch a.user u where u = :user")
+    @Query("select a from Activity a left join fetch a.user u where u = :user order by a.startDatetime DESC")
     Iterable<Activity> findAllByOrderByStartDatetimeDescAndUser(@Param("user") User user);
 }
