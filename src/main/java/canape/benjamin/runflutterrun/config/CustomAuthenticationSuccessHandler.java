@@ -1,6 +1,8 @@
 package canape.benjamin.runflutterrun.config;
 
+import canape.benjamin.runflutterrun.model.RefreshToken;
 import canape.benjamin.runflutterrun.security.JwtUtils;
+import canape.benjamin.runflutterrun.service.IRefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,14 +22,19 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     private ObjectMapper objectMapper;
     @Autowired
     private JwtUtils jwtUtils;
+    @Autowired
+    private IRefreshTokenService refreshTokenService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String jwt = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
 
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUsername());
+
         // Construire un objet JSON de réponse avec le jeton
         Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("resfreshToken", refreshToken.getToken());
         responseBody.put("token", jwt);
         responseBody.put("message", "Authentication successful");
 
