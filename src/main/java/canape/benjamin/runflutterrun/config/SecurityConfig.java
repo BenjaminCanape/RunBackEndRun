@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                 .requestMatchers("/resources/**").permitAll()
-                .requestMatchers(REGISTER_URL, SIGN_UP_URL).permitAll()
+                .requestMatchers(REGISTER_URL, SIGN_UP_URL, REFRESH_TOKEN_URL).permitAll()
                 .requestMatchers("/api/private/**").authenticated()
                 .anyRequest().permitAll()
                 .and()

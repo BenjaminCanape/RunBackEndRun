@@ -1,7 +1,9 @@
 package canape.benjamin.runflutterrun.controller;
 
+import canape.benjamin.runflutterrun.dto.RefreshTokenDto;
 import canape.benjamin.runflutterrun.dto.UserDto;
 import canape.benjamin.runflutterrun.model.User;
+import canape.benjamin.runflutterrun.service.IRefreshTokenService;
 import canape.benjamin.runflutterrun.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -27,12 +29,28 @@ public class UserController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private IRefreshTokenService refreshTokenService;
+
+
     @PostMapping(value = "/user/register", consumes = "application/json")
     public Long create(@RequestBody UserDto userDto) {
         try {
             return userCrudService.create(convertToEntity(userDto));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create user", e);
+        }
+    }
+
+    @PostMapping("/user/refreshToken")
+    public ResponseEntity<RefreshTokenDto> refreshtoken(@RequestBody RefreshTokenDto refreshTokenDto) {
+        try {
+            String newToken = refreshTokenService.generateNewAccessTokenFromRequestToken(refreshTokenDto.getToken());
+            RefreshTokenDto response = new RefreshTokenDto();
+            response.setToken(newToken);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed generate new access token", e);
         }
     }
 
