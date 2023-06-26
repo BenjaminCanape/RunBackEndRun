@@ -32,10 +32,9 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
         String token = jwtUtils.extractTokenFromRequest(request);
         TokenManager.invalidateToken(token);
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        refreshTokenService.deleteByUsername(userDetails.getUsername());
-
-
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        refreshTokenService.deleteByUsername(username);
+        
         String jsonResponse = objectMapper.writeValueAsString(Collections.emptyMap());
 
         response.setContentType("application/json");
