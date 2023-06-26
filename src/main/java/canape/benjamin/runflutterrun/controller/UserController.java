@@ -1,6 +1,5 @@
 package canape.benjamin.runflutterrun.controller;
 
-import canape.benjamin.runflutterrun.dto.ActivityDto;
 import canape.benjamin.runflutterrun.dto.RefreshTokenDto;
 import canape.benjamin.runflutterrun.dto.UserDto;
 import canape.benjamin.runflutterrun.model.User;
