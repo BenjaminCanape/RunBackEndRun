@@ -1,6 +1,7 @@
 package canape.benjamin.runflutterrun.controller;
 
-import canape.benjamin.runflutterrun.dto.RefreshTokenResponseDto;
+import canape.benjamin.runflutterrun.dto.ActivityDto;
+import canape.benjamin.runflutterrun.dto.RefreshTokenDto;
 import canape.benjamin.runflutterrun.dto.UserDto;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.service.IRefreshTokenService;
@@ -43,10 +44,10 @@ public class UserController {
     }
 
     @PostMapping("/user/refreshToken")
-    public ResponseEntity<RefreshTokenResponseDto> refreshtoken(@RequestParam(value = "refreshToken") String refreshTokenString) {
+    public ResponseEntity<RefreshTokenDto> refreshtoken(@RequestBody RefreshTokenDto refreshTokenDto) {
         try {
-            String newToken = refreshTokenService.generateNewAccessTokenFromRequestToken(refreshTokenString);
-            RefreshTokenResponseDto response = new RefreshTokenResponseDto();
+            String newToken = refreshTokenService.generateNewAccessTokenFromRequestToken(refreshTokenDto.getToken());
+            RefreshTokenDto response = new RefreshTokenDto();
             response.setToken(newToken);
             return ResponseEntity.ok(response);
         } catch (Exception e) {

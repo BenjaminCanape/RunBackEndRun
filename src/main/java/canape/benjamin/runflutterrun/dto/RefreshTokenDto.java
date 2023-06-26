@@ -3,6 +3,6 @@ package canape.benjamin.runflutterrun.dto;
 import lombok.Data;
 
 @Data
-public class RefreshTokenResponseDto {
+public class RefreshTokenDto {
     private String token;
 }
