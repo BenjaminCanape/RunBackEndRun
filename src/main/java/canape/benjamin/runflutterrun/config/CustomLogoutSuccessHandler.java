@@ -3,6 +3,7 @@ package canape.benjamin.runflutterrun.config;
 import canape.benjamin.runflutterrun.security.JwtUtils;
 import canape.benjamin.runflutterrun.security.TokenManager;
 import canape.benjamin.runflutterrun.service.IRefreshTokenService;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,14 +33,18 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
         String token = jwtUtils.extractTokenFromRequest(request);
         TokenManager.invalidateToken(token);
 
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        refreshTokenService.deleteByUsername(username);
-        
-        String jsonResponse = objectMapper.writeValueAsString(Collections.emptyMap());
+        try {
+            String username = jwtUtils.getUserNameFromJwtToken(token);
+            refreshTokenService.deleteByUsername(username);
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(jsonResponse);
-        response.setStatus(HttpServletResponse.SC_OK);
+            String jsonResponse = objectMapper.writeValueAsString(Collections.emptyMap());
+
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jsonResponse);
+            response.setStatus(HttpServletResponse.SC_OK);
+        } catch (TokenExpiredException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
     }
 }
