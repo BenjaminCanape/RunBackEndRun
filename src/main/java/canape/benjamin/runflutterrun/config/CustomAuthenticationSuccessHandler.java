@@ -34,7 +34,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
         // Construire un objet JSON de réponse avec le jeton
         Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("resfreshToken", refreshToken.getToken());
+        responseBody.put("refreshToken", refreshToken.getToken());
         responseBody.put("token", jwt);
         responseBody.put("message", "Authentication successful");
 
