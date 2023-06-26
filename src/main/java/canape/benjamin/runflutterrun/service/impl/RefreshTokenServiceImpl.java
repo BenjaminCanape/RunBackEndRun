@@ -6,12 +6,14 @@ import java.util.UUID;
 
 import canape.benjamin.runflutterrun.exception.RefreshTokenException;
 import canape.benjamin.runflutterrun.model.RefreshToken;
+import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repository.RefreshTokenRepository;
 import canape.benjamin.runflutterrun.repository.UserRepository;
 import canape.benjamin.runflutterrun.security.JwtUtils;
 import canape.benjamin.runflutterrun.service.IRefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static canape.benjamin.runflutterrun.security.SecurityConstants.REFRESH_EXPIRATION_TIME;
@@ -44,15 +46,28 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
                 "Refresh token is not in database!");
     }
 
-    public RefreshToken createRefreshToken(String username) {
-        RefreshToken refreshToken = new RefreshToken();
 
-        refreshToken.setUser(userRepository.findByUsername(username));
+    @Transactional()
+    public RefreshToken createRefreshToken(String username) {
+        User user = userRepository.findByUsername(username);
+        RefreshToken refreshToken = user.getRefreshToken();
+
+        if(refreshToken == null) {
+            refreshToken = new RefreshToken();
+            refreshToken.setUser(userRepository.findByUsername(username));
+        }
+
+
         refreshToken.setExpiryDate(Instant.now().plusMillis(REFRESH_EXPIRATION_TIME));
         refreshToken.setToken(UUID.randomUUID().toString());
 
         refreshToken = refreshTokenRepository.save(refreshToken);
         return refreshToken;
+    }
+
+    @Transactional()
+    public int deleteByUsername(String username) {
+        return refreshTokenRepository.deleteByUser(userRepository.findByUsername(username));
     }
 
     public RefreshToken verifyExpiration(RefreshToken token) {
@@ -62,10 +77,5 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
         }
 
         return token;
-    }
-
-    @Transactional
-    public int deleteByUsername(String username) {
-        return refreshTokenRepository.deleteByUser(userRepository.findByUsername(username));
     }
 }
