@@ -13,7 +13,6 @@ import canape.benjamin.runflutterrun.security.JwtUtils;
 import canape.benjamin.runflutterrun.service.IRefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static canape.benjamin.runflutterrun.security.SecurityConstants.REFRESH_EXPIRATION_TIME;

@@ -43,8 +43,7 @@ public class JwtUtils {
         token = extractTokenFromBearerToken(token);
 
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
-                .build()
-                .verify(token);
+                .build().verify(token);
         return decodedJWT.getSubject();
     }
 
