@@ -1,4 +1,4 @@
-package canape.benjamin.runflutterrun.security;
+package canape.benjamin.runflutterrun.security.jwt;
 
 import canape.benjamin.runflutterrun.model.User;
 import com.auth0.jwt.JWT;

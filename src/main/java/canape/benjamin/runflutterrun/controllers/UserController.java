@@ -1,10 +1,10 @@
-package canape.benjamin.runflutterrun.controller;
+package canape.benjamin.runflutterrun.controllers;
 
 import canape.benjamin.runflutterrun.dto.RefreshTokenDto;
 import canape.benjamin.runflutterrun.dto.UserDto;
 import canape.benjamin.runflutterrun.model.User;
-import canape.benjamin.runflutterrun.service.IRefreshTokenService;
-import canape.benjamin.runflutterrun.service.IUserService;
+import canape.benjamin.runflutterrun.services.IRefreshTokenService;
+import canape.benjamin.runflutterrun.services.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,6 @@
-package canape.benjamin.runflutterrun.security;
+package canape.benjamin.runflutterrun.security.jwt;
 
-import canape.benjamin.runflutterrun.service.impl.UserDetailsServiceImpl;
+import canape.benjamin.runflutterrun.services.impl.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,6 +1,6 @@
 package canape.benjamin.runflutterrun;
 
-import canape.benjamin.runflutterrun.config.SecurityConfig;
+import canape.benjamin.runflutterrun.security.SecurityConfig;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,7 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @SpringBootApplication
 @Import(SecurityConfig.class)
-@ComponentScan(basePackages = {"canape.benjamin.runflutterrun.config", "canape.benjamin.runflutterrun.controller", "canape.benjamin.runflutterrun.security", "canape.benjamin.runflutterrun.service", "canape.benjamin.runflutterrun.repository", "canape.benjamin.runflutterrun.model", "canape.benjamin.runflutterrun.dto"})
+@ComponentScan(basePackages = {"canape.benjamin.runflutterrun.controllers", "canape.benjamin.runflutterrun.security", "canape.benjamin.runflutterrun.services", "canape.benjamin.runflutterrun.repositories", "canape.benjamin.runflutterrun.model", "canape.benjamin.runflutterrun.dto"})
 public class RunflutterrunApplication {
 
     @Bean

@@ -1,11 +1,11 @@
-package canape.benjamin.runflutterrun.service.impl;
+package canape.benjamin.runflutterrun.services.impl;
 
 import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.User;
-import canape.benjamin.runflutterrun.repository.ActivityRepository;
-import canape.benjamin.runflutterrun.repository.UserRepository;
-import canape.benjamin.runflutterrun.security.JwtUtils;
-import canape.benjamin.runflutterrun.service.IActivityService;
+import canape.benjamin.runflutterrun.repositories.ActivityRepository;
+import canape.benjamin.runflutterrun.repositories.UserRepository;
+import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
+import canape.benjamin.runflutterrun.services.IActivityService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
-package canape.benjamin.runflutterrun.service.impl;
+package canape.benjamin.runflutterrun.services.impl;
 
 import canape.benjamin.runflutterrun.model.User;
-import canape.benjamin.runflutterrun.service.IUserService;
+import canape.benjamin.runflutterrun.services.IUserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

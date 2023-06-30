@@ -1,4 +1,4 @@
-package canape.benjamin.runflutterrun.security;
+package canape.benjamin.runflutterrun.security.jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

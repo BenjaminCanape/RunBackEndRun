@@ -1,4 +1,4 @@
-package canape.benjamin.runflutterrun.config;
+package canape.benjamin.runflutterrun.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpMethod;

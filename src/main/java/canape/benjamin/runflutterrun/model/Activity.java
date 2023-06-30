@@ -1,5 +1,6 @@
 package canape.benjamin.runflutterrun.model;
 
+import canape.benjamin.runflutterrun.model.enums.ActivityType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

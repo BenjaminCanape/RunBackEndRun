@@ -1,6 +1,6 @@
 package canape.benjamin.runflutterrun.dto;
 
-import canape.benjamin.runflutterrun.model.ActivityType;
+import canape.benjamin.runflutterrun.model.enums.ActivityType;
 import lombok.Data;
 
 import java.util.Date;

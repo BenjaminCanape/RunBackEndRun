@@ -1,4 +1,4 @@
-package canape.benjamin.runflutterrun.service;
+package canape.benjamin.runflutterrun.services;
 
 import canape.benjamin.runflutterrun.model.RefreshToken;
 import org.springframework.stereotype.Service;

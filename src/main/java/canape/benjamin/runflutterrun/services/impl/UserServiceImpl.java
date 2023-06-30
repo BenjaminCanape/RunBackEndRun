@@ -1,9 +1,9 @@
-package canape.benjamin.runflutterrun.service.impl;
+package canape.benjamin.runflutterrun.services.impl;
 
 import canape.benjamin.runflutterrun.model.User;
-import canape.benjamin.runflutterrun.repository.UserRepository;
-import canape.benjamin.runflutterrun.security.JwtUtils;
-import canape.benjamin.runflutterrun.service.IUserService;
+import canape.benjamin.runflutterrun.repositories.UserRepository;
+import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
+import canape.benjamin.runflutterrun.services.IUserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

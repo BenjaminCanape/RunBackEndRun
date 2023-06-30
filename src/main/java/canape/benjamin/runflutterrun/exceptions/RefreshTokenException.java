@@ -1,4 +1,4 @@
-package canape.benjamin.runflutterrun.exception;
+package canape.benjamin.runflutterrun.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

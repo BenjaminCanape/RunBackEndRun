@@ -1,10 +1,10 @@
-package canape.benjamin.runflutterrun.controller;
+package canape.benjamin.runflutterrun.controllers;
 
 import canape.benjamin.runflutterrun.dto.ActivityDto;
 import canape.benjamin.runflutterrun.dto.LocationDto;
 import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.Location;
-import canape.benjamin.runflutterrun.service.IActivityService;
+import canape.benjamin.runflutterrun.services.IActivityService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

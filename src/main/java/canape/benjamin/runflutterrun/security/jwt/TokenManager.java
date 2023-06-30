@@ -1,4 +1,4 @@
-package canape.benjamin.runflutterrun.security;
+package canape.benjamin.runflutterrun.security.jwt;
 
 import java.util.Collections;
 import java.util.HashSet;

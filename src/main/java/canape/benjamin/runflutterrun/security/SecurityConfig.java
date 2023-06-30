@@ -1,7 +1,7 @@
-package canape.benjamin.runflutterrun.config;
+package canape.benjamin.runflutterrun.security;
 
-import canape.benjamin.runflutterrun.security.AuthEntryPointJwt;
-import canape.benjamin.runflutterrun.security.AuthTokenFilter;
+import canape.benjamin.runflutterrun.security.jwt.AuthEntryPointJwt;
+import canape.benjamin.runflutterrun.security.jwt.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

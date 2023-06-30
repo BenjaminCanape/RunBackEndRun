@@ -1,8 +1,8 @@
-package canape.benjamin.runflutterrun.config;
+package canape.benjamin.runflutterrun.security;
 
-import canape.benjamin.runflutterrun.security.JwtUtils;
-import canape.benjamin.runflutterrun.security.TokenManager;
-import canape.benjamin.runflutterrun.service.IRefreshTokenService;
+import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
+import canape.benjamin.runflutterrun.security.jwt.TokenManager;
+import canape.benjamin.runflutterrun.services.IRefreshTokenService;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;

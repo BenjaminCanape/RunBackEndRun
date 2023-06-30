@@ -1,16 +1,16 @@
-package canape.benjamin.runflutterrun.service.impl;
+package canape.benjamin.runflutterrun.services.impl;
 
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-import canape.benjamin.runflutterrun.exception.RefreshTokenException;
+import canape.benjamin.runflutterrun.exceptions.RefreshTokenException;
 import canape.benjamin.runflutterrun.model.RefreshToken;
 import canape.benjamin.runflutterrun.model.User;
-import canape.benjamin.runflutterrun.repository.RefreshTokenRepository;
-import canape.benjamin.runflutterrun.repository.UserRepository;
-import canape.benjamin.runflutterrun.security.JwtUtils;
-import canape.benjamin.runflutterrun.service.IRefreshTokenService;
+import canape.benjamin.runflutterrun.repositories.RefreshTokenRepository;
+import canape.benjamin.runflutterrun.repositories.UserRepository;
+import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
+import canape.benjamin.runflutterrun.services.IRefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,7 +72,7 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
-            throw new RefreshTokenException(token.getToken(), "Refresh token was expired. Please make a new signin request");
+            throw new RefreshTokenException(token.getToken(), "Refresh token was expired. Please make ActivityType.java new signin request");
         }
 
         return token;

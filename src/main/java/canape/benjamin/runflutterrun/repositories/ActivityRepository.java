@@ -1,4 +1,4 @@
-package canape.benjamin.runflutterrun.repository;
+package canape.benjamin.runflutterrun.repositories;
 
 import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.User;
