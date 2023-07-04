@@ -11,22 +11,18 @@ import canape.benjamin.runflutterrun.repositories.RefreshTokenRepository;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
 import canape.benjamin.runflutterrun.services.IRefreshTokenService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static canape.benjamin.runflutterrun.security.SecurityConstants.REFRESH_EXPIRATION_TIME;
 
 @Service
+@AllArgsConstructor
 public class RefreshTokenServiceImpl implements IRefreshTokenService {
 
-    @Autowired
     private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
     private UserRepository userRepository;
-
-    @Autowired
     private JwtUtils jwtUtils;
 
     public Optional<RefreshToken> findByToken(String token) {
