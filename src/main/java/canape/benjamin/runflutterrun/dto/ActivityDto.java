@@ -6,6 +6,9 @@ import lombok.Data;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Data Transfer Object (DTO) for representing an activity.
+ */
 @Data
 public class ActivityDto {
     private Long id;

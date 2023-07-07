@@ -37,6 +37,16 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private final AntPathRequestMatcher loginPathMatcher = new AntPathRequestMatcher(LOGIN_PATH);
 
+    /**
+     * Filters incoming requests and checks for the presence of a valid JWT token in the Authorization header.
+     * If a valid token is found, it sets the user authentication in the SecurityContextHolder.
+     *
+     * @param request     The HTTP request.
+     * @param response    The HTTP response.
+     * @param filterChain The filter chain.
+     * @throws IOException      If an I/O error occurs while processing the request.
+     * @throws ServletException If a servlet-related error occurs while processing the request.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws IOException, ServletException {
@@ -69,6 +79,12 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Parses the JWT token from the Authorization header of the HTTP request.
+     *
+     * @param request The HTTP request.
+     * @return The parsed JWT token, or null if it cannot be parsed.
+     */
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
 

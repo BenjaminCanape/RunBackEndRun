@@ -43,6 +43,11 @@ public class SecurityConfig {
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
+    /**
+     * Configures the authentication provider.
+     *
+     * @return the AuthenticationProvider
+     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
@@ -51,16 +56,33 @@ public class SecurityConfig {
         return authenticationProvider;
     }
 
+    /**
+     * Configures the authentication manager.
+     *
+     * @return the AuthenticationManager
+     * @throws Exception if an error occurs while configuring the AuthenticationManager
+     */
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    /**
+     * Configures the password encoder.
+     *
+     * @return the PasswordEncoder
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Creates a new instance of JsonAuthenticationFilter and configures it.
+     *
+     * @return the JsonAuthenticationFilter
+     * @throws Exception if an error occurs while configuring the JsonAuthenticationFilter
+     */
     @Bean
     public JsonAuthenticationFilter jsonAuthFilter() throws Exception {
         JsonAuthenticationFilter filter = new JsonAuthenticationFilter(new AntPathRequestMatcher(SIGN_UP_URL, "POST"));
@@ -70,6 +92,13 @@ public class SecurityConfig {
         return filter;
     }
 
+    /**
+     * Configures the security filter chain.
+     *
+     * @param http the HttpSecurity object
+     * @return the SecurityFilterChain
+     * @throws Exception if an error occurs while configuring the SecurityFilterChain
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()

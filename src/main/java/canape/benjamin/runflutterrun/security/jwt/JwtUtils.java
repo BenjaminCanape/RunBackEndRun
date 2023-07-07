@@ -22,10 +22,22 @@ public class JwtUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtUtils.class);
 
+    /**
+     * Generates a JWT token for the given user.
+     *
+     * @param user The user.
+     * @return The generated JWT token.
+     */
     public String generateJwtToken(User user) {
         return generateTokenFromUsername(user.getUsername());
     }
 
+    /**
+     * Generates a JWT token from the given username.
+     *
+     * @param username The username.
+     * @return The generated JWT token.
+     */
     public String generateTokenFromUsername(String username) {
         Date currentDate = new Date();
         String token = JWT.create()
@@ -39,6 +51,12 @@ public class JwtUtils {
         return token;
     }
 
+    /**
+     * Extracts the username from the given JWT token.
+     *
+     * @param token The JWT token.
+     * @return The extracted username.
+     */
     public String getUserNameFromJwtToken(String token) {
         token = extractTokenFromBearerToken(token);
 
@@ -47,6 +65,12 @@ public class JwtUtils {
         return decodedJWT.getSubject();
     }
 
+    /**
+     * Validates the given JWT token.
+     *
+     * @param authToken The JWT token to validate.
+     * @return true if the token is valid, false otherwise.
+     */
     public boolean validateJwtToken(String authToken) {
         if (TokenManager.isValidToken(authToken)) {
             try {
@@ -65,6 +89,12 @@ public class JwtUtils {
         return false;
     }
 
+    /**
+     * Extracts the token from the "Bearer" token format.
+     *
+     * @param bearerToken The "Bearer" token.
+     * @return The extracted token.
+     */
     private String extractTokenFromBearerToken(String bearerToken) {
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
@@ -72,6 +102,12 @@ public class JwtUtils {
         return bearerToken;
     }
 
+    /**
+     * Extracts the token from the Authorization header of the HTTP request.
+     *
+     * @param request The HTTP request.
+     * @return The extracted token.
+     */
     public String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         return extractTokenFromBearerToken(bearerToken);

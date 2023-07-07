@@ -25,6 +25,14 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     @Autowired
     private IRefreshTokenService refreshTokenService;
 
+    /**
+     * Handles the successful authentication.
+     *
+     * @param request        The HttpServletRequest.
+     * @param response       The HttpServletResponse.
+     * @param authentication The Authentication object representing the successful authentication.
+     * @throws IOException if an I/O error occurs during the handling of the successful authentication.
+     */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();

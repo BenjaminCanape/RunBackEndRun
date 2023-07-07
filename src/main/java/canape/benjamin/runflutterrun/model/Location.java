@@ -14,16 +14,28 @@ import java.util.Date;
 @NoArgsConstructor
 public class Location extends AbstractEntity {
 
+    /**
+     * The activity associated with the location.
+     */
     @ManyToOne
     @JoinColumn(name = "activity_id")
     private Activity activity;
 
+    /**
+     * The datetime of the location.
+     */
     @Column(name = "datetime")
     private Date datetime;
 
+    /**
+     * The latitude coordinate of the location.
+     */
     @Column(name = "latitude")
     private Double latitude;
 
+    /**
+     * The longitude coordinate of the location.
+     */
     @Column(name = "longitude")
     private Double longitude;
 }

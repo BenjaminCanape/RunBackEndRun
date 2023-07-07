@@ -18,6 +18,14 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * Handles the failure of authentication.
+     *
+     * @param request   The HttpServletRequest.
+     * @param response  The HttpServletResponse.
+     * @param exception The AuthenticationException.
+     * @throws IOException if an I/O error occurs during the handling of the failure.
+     */
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
         String errorMessage = "Authentication failed: " + exception.getMessage();

@@ -14,17 +14,33 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+/**
+ * JsonAuthenticationFilter is responsible for handling authentication requests with JSON payload.
+ * It extracts the username and password from the JSON payload and performs authentication.
+ */
 public class JsonAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * Constructs a new JsonAuthenticationFilter with the specified requiresAuthenticationRequestMatcher.
+     *
+     * @param requiresAuthenticationRequestMatcher the RequestMatcher that determines if authentication is required
+     */
     public JsonAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
         super(requiresAuthenticationRequestMatcher);
     }
 
+    /**
+     * Attempts authentication by extracting the username and password from the JSON payload.
+     *
+     * @param request  the HTTP request
+     * @param response the HTTP response
+     * @return an Authentication object if the authentication is successful
+     * @throws AuthenticationException if authentication fails
+     */
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
-            throws AuthenticationException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         if (HttpMethod.POST.matches(request.getMethod())) {
             try (InputStream requestBody = request.getInputStream()) {
                 Map<String, String> authenticationData = objectMapper.readValue(requestBody, Map.class);
