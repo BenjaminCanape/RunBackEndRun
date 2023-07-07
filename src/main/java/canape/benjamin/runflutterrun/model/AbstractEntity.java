@@ -10,6 +10,9 @@ import lombok.Setter;
 
 import java.io.Serializable;
 
+/**
+ * Abstract base entity class representing common properties for entities.
+ */
 @MappedSuperclass
 @Getter
 @Setter
@@ -18,6 +21,9 @@ public abstract class AbstractEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Unique identifier for the entity.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

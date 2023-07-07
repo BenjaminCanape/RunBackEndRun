@@ -10,14 +10,30 @@ public final class TokenManager {
     private TokenManager() {
     }
 
+    /**
+     * Checks if a token is valid.
+     *
+     * @param token The token to check.
+     * @return true if the token is valid, false otherwise.
+     */
     public static boolean isValidToken(String token) {
         return validTokens.contains(token);
     }
 
+    /**
+     * Invalidates a token.
+     *
+     * @param token The token to invalidate.
+     */
     public static void invalidateToken(String token) {
         validTokens.remove(token);
     }
 
+    /**
+     * Adds a valid token.
+     *
+     * @param token The token to add.
+     */
     public static void addValidToken(String token) {
         validTokens.add(token);
     }

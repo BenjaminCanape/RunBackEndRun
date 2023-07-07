@@ -30,6 +30,12 @@ public class ActivityController {
     @Autowired
     private IActivityService activityCrudService;
 
+    /**
+     * Retrieves all activities.
+     *
+     * @param token The authorization token.
+     * @return A list of ActivityDto objects.
+     */
     @GetMapping(value = "/all", produces = "application/json")
     public List<ActivityDto> getAll(@RequestHeader(name = "Authorization") String token) {
         try {
@@ -42,6 +48,13 @@ public class ActivityController {
         }
     }
 
+    /**
+     * Creates a new activity.
+     *
+     * @param activity The ActivityDto object containing the activity details.
+     * @param token    The authorization token.
+     * @return The created ActivityDto object.
+     */
     @PostMapping(value = "/", consumes = "application/json")
     public ActivityDto create(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
         try {
@@ -51,6 +64,12 @@ public class ActivityController {
         }
     }
 
+    /**
+     * Retrieves an activity by its ID.
+     *
+     * @param id The ID of the activity.
+     * @return The retrieved ActivityDto object.
+     */
     @GetMapping(value = "/{id}", produces = "application/json")
     public ActivityDto retrieve(@PathVariable long id) {
         try {
@@ -60,6 +79,12 @@ public class ActivityController {
         }
     }
 
+    /**
+     * Updates an existing activity.
+     *
+     * @param activity The updated ActivityDto object.
+     * @return The updated ActivityDto object.
+     */
     @PutMapping(value = "/", consumes = "application/json")
     public ActivityDto update(@RequestBody ActivityDto activity) {
         try {
@@ -69,6 +94,12 @@ public class ActivityController {
         }
     }
 
+    /**
+     * Deletes an activity.
+     *
+     * @param id The ID of the activity to delete.
+     * @return A ResponseEntity with the deletion status.
+     */
     @DeleteMapping(value = "/")
     public ResponseEntity<String> delete(@RequestParam(value = "id") Long id) {
         try {

@@ -11,11 +11,29 @@ import java.util.Optional;
 
 @Repository
 public interface ActivityRepository extends CrudRepository<Activity, Long> {
+
+    /**
+     * Retrieves an activity by its ID, including its associated locations.
+     *
+     * @param id The ID of the activity.
+     * @return An Optional containing the activity if found, or an empty Optional if not found.
+     */
     @Query("select a from Activity a left join fetch a.locations locations where a.id = :id")
     Optional<Activity> findActivityById(@Param("id") long id);
 
+    /**
+     * Retrieves all activities sorted by start datetime in descending order.
+     *
+     * @return An iterable collection of activities.
+     */
     Iterable<Activity> findAllByOrderByStartDatetimeDesc();
 
+    /**
+     * Retrieves all activities associated with a specific user, sorted by start datetime in descending order.
+     *
+     * @param user The user for which to retrieve activities.
+     * @return An iterable collection of activities.
+     */
     @Query("select a from Activity a left join fetch a.user u where u = :user order by a.startDatetime DESC")
     Iterable<Activity> findAllByOrderByStartDatetimeDescAndUser(@Param("user") User user);
 }
