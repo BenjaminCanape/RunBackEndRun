@@ -12,15 +12,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-import java.util.logging.Logger;
-
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements IUserService {
-
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
-
+    
     private JwtUtils jwtUtils;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private UserRepository userRepository;
