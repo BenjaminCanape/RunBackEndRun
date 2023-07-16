@@ -1,5 +1,6 @@
 package canape.benjamin.runflutterrun.services;
 
+import canape.benjamin.runflutterrun.dto.EditPasswordDto;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
@@ -8,11 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import jakarta.persistence.EntityNotFoundException;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -89,38 +87,53 @@ class UserServiceImplTest {
         User user = new User();
         user.setId(userId);
         user.setUsername("username");
-        user.setPassword("encoded_password");
+        user.setPassword("password");
 
         User existing = new User();
         existing.setId(userId);
         existing.setUsername("username");
-        existing.setPassword("new_password");
+        existing.setPassword("password");
 
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(existing));
-        when(bCryptPasswordEncoder.encode(anyString())).thenReturn("encoded_password");
+        String token = "test_token";
+        EditPasswordDto dto = new EditPasswordDto();
+        dto.setPassword("password");
+        dto.setCurrentPassword("password");
+
+        when(jwtUtils.getUserNameFromJwtToken(anyString())).thenReturn(user.getUsername());
+        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        when(bCryptPasswordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(userRepository.save(any(User.class))).thenReturn(user);
 
         // Call
-        Long result = userService.editPassword(user);
+        Long result = userService.editPassword(token, dto);
 
         // Verify
         assertNotNull(result);
         assertEquals(userId, result);
-        verify(userRepository).findById(userId);
-        verify(bCryptPasswordEncoder).encode(user.getPassword());
-        verify(userRepository).save(existing);
+        verify(userRepository).findByUsername(user.getUsername());
+        verify(bCryptPasswordEncoder).matches(anyString(), anyString());
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
-    void editPassword_ThrowsEntityNotFoundExceptionWhenUserNotFound() {
+    void editPassword_ThrowsBadCredentialsWhenCurrentPasswordIsIncorrect() {
         // Mock
         Long userId = 1L;
         User user = new User();
         user.setId(userId);
-        when(userRepository.findById(anyLong())).thenReturn(java.util.Optional.empty());
+        user.setUsername("username");
+        String token = "test_token";
+        EditPasswordDto dto = new EditPasswordDto();
+        dto.setPassword("password");
+        dto.setCurrentPassword("password");
+
+        when(jwtUtils.getUserNameFromJwtToken(anyString())).thenReturn(user.getUsername());
+        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        when(bCryptPasswordEncoder.matches(anyString(), anyString())).thenReturn(false);
+
 
         // Call and verify
-        assertThrows(EntityNotFoundException.class, () -> userService.editPassword(user));
+        assertThrows(BadCredentialsException.class, () -> userService.editPassword(token, dto));
     }
 
     @Test

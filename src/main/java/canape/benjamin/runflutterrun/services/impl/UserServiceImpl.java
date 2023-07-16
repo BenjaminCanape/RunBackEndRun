@@ -1,18 +1,25 @@
 package canape.benjamin.runflutterrun.services.impl;
 
+import canape.benjamin.runflutterrun.dto.EditPasswordDto;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
 import canape.benjamin.runflutterrun.services.IUserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+import java.util.logging.Logger;
 
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements IUserService {
+
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private JwtUtils jwtUtils;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -48,16 +55,22 @@ public class UserServiceImpl implements IUserService {
     /**
      * Edit the password of a user.
      *
-     * @param user the user with the updated password
+     * @param token the token associated with the user
+     * @param dto the dto with the updated password
      * @return the ID of the updated user
      * @throws EntityNotFoundException if the user is not found
      */
     @Override
-    public Long editPassword(User user) {
-        User existingUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new EntityNotFoundException("User with id: " + user.getId() + " not found."));
-        existingUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        return userRepository.save(existingUser).getId();
+    public Long editPassword(String token, EditPasswordDto dto) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
+        if (bCryptPasswordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            user.setPassword(bCryptPasswordEncoder.encode(dto.getPassword()));
+            return userRepository.save(user).getId();
+        }
+
+        throw new BadCredentialsException("The current password is incorrect");
     }
 
     /**
