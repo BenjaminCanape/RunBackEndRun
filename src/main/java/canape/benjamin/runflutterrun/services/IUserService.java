@@ -1,5 +1,6 @@
 package canape.benjamin.runflutterrun.services;
 
+import canape.benjamin.runflutterrun.dto.EditPasswordDto;
 import canape.benjamin.runflutterrun.model.User;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +25,11 @@ public interface IUserService {
     /**
      * Edit the password of a user.
      *
-     * @param user the user with the updated password
+     * @param token the token associated with the user
+     * @param dto the dto with the updated password
      * @return the ID of the user
      */
-    Long editPassword(User user);
+    Long editPassword(String token, EditPasswordDto dto);
 
     /**
      * Delete a user based on the provided token.

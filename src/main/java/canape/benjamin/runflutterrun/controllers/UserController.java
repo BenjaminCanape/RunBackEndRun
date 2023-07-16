@@ -1,5 +1,6 @@
 package canape.benjamin.runflutterrun.controllers;
 
+import canape.benjamin.runflutterrun.dto.EditPasswordDto;
 import canape.benjamin.runflutterrun.dto.RefreshTokenDto;
 import canape.benjamin.runflutterrun.dto.UserDto;
 import canape.benjamin.runflutterrun.model.User;
@@ -68,13 +69,14 @@ public class UserController {
     /**
      * Edits the password of a user.
      *
-     * @param userDto The UserDto object containing the user details.
+     * @param token The authorization token.
+     * @param editPasswordDto The EditPasswordDto object containing the password details.
      * @return The ID of the user whose password was edited.
      */
     @PutMapping(value = "/private/user/editPassword", consumes = "application/json")
-    public Long editPassword(@RequestBody UserDto userDto) {
+    public Long editPassword(@RequestHeader(name = "Authorization") String token, @RequestBody EditPasswordDto editPasswordDto) {
         try {
-            return userCrudService.editPassword(convertToEntity(userDto));
+            return userCrudService.editPassword(token, editPasswordDto);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed edit password", e);
         }
