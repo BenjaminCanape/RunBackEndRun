@@ -23,7 +23,7 @@ public interface ICrudService<T> {
      * @param id the ID of the entity
      * @return the entity with the specified ID
      */
-    T getById(long id);
+    T getById(String token, long id);
 
     /**
      * Update an entity.
@@ -31,12 +31,12 @@ public interface ICrudService<T> {
      * @param t the entity to update
      * @return the updated entity
      */
-    T update(T t);
+    T update(String token, T t);
 
     /**
      * Delete an entity by its ID.
      *
      * @param id the ID of the entity to delete
      */
-    void delete(long id);
+    void delete(String token, long id);
 }

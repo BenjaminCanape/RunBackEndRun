@@ -71,9 +71,9 @@ public class ActivityController {
      * @return The retrieved ActivityDto object.
      */
     @GetMapping(value = "/{id}", produces = "application/json")
-    public ActivityDto retrieve(@PathVariable long id) {
+    public ActivityDto retrieve(@PathVariable long id, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(activityCrudService.getById(id), true);
+            return convertToDTO(activityCrudService.getById(token, id), true);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activity", e);
         }
@@ -86,9 +86,9 @@ public class ActivityController {
      * @return The updated ActivityDto object.
      */
     @PutMapping(value = "/", consumes = "application/json")
-    public ActivityDto update(@RequestBody ActivityDto activity) {
+    public ActivityDto update(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(activityCrudService.update(convertToEntity(activity)));
+            return convertToDTO(activityCrudService.update(token, convertToEntity(activity)));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update activity", e);
         }
@@ -101,9 +101,9 @@ public class ActivityController {
      * @return A ResponseEntity with the deletion status.
      */
     @DeleteMapping(value = "/")
-    public ResponseEntity<String> delete(@RequestParam(value = "id") Long id) {
+    public ResponseEntity<String> delete(@RequestParam(value = "id") Long id, @RequestHeader(name = "Authorization") String token) {
         try {
-            activityCrudService.delete(id);
+            activityCrudService.delete(token, id);
             return ResponseEntity.ok("Activity successfully deleted");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Activity deletion failed");

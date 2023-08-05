@@ -123,11 +123,18 @@ class ActivityServiceImplTest {
     void getById_ReturnsActivityById() {
         // Mock
         long id = 1;
+        String token = "mock_token";
+        String username = "mock_username";
+        User user = new User();
+        user.setId(1L);
         Activity activity = createSampleActivity();
+        activity.setUser(user);
+        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
+        when(userRepository.findByUsername(username)).thenReturn(user);
         when(activityRepository.findById(id)).thenReturn(Optional.of(activity));
 
         // Call
-        Activity result = activityService.getById(id);
+        Activity result = activityService.getById(token, id);
 
         // Verify
         assertNotNull(result);
@@ -138,10 +145,16 @@ class ActivityServiceImplTest {
     void getById_ThrowsEntityNotFoundExceptionWhenActivityNotFound() {
         // Mock
         long id = 1;
+        String token = "mock_token";
+        String username = "mock_username";
+        User user = new User();
+        user.setId(1L);
+        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
+        when(userRepository.findByUsername(username)).thenReturn(user);
         when(activityRepository.findById(id)).thenReturn(Optional.empty());
 
         // Call and verify
-        assertThrows(EntityNotFoundException.class, () -> activityService.getById(id));
+        assertThrows(EntityNotFoundException.class, () -> activityService.getById(token, id));
     }
 
     @Test
@@ -150,11 +163,18 @@ class ActivityServiceImplTest {
         User user = new User();
         Activity updatedActivity = createSampleActivity();
         Activity existingActivity = createSampleActivity();
+        String token = "mock_token";
+        String username = "mock_username";
+        user.setId(1L);
+        existingActivity.setUser(user);
+        updatedActivity.setUser(user);
+        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
+        when(userRepository.findByUsername(username)).thenReturn(user);
         when(activityRepository.findById(existingActivity.getId())).thenReturn(Optional.of(existingActivity));
         when(activityRepository.save(existingActivity)).thenReturn(existingActivity);
 
         // Call
-        Activity result = activityService.update(updatedActivity);
+        Activity result = activityService.update(token, updatedActivity);
 
         // Verify
         assertNotNull(result);
@@ -171,19 +191,35 @@ class ActivityServiceImplTest {
     void update_ThrowsEntityNotFoundExceptionWhenActivityNotFound() {
         // Mock
         Activity activity = createSampleActivity();
+        String token = "mock_token";
+        String username = "mock_username";
+        User user = new User();
+        user.setId(1L);
+        activity.setUser(user);
+        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
+        when(userRepository.findByUsername(username)).thenReturn(user);
         when(activityRepository.findById(activity.getId())).thenReturn(Optional.empty());
 
         // Call and verify
-        assertThrows(EntityNotFoundException.class, () -> activityService.update(activity));
+        assertThrows(EntityNotFoundException.class, () -> activityService.update(token, activity));
     }
 
     @Test
     void delete_CallsActivityRepositoryDeleteById() {
         // Mock
         long id = 1;
+        String token = "mock_token";
+        String username = "mock_username";
+        User user = new User();
+        user.setId(1L);
+        Activity activity = new Activity();
+        activity.setUser(user);
+        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
+        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(activityRepository.findById(anyLong())).thenReturn(Optional.of(activity));
 
         // Call
-        activityService.delete(id);
+        activityService.delete(token, id);
 
         // Verify
         verify(activityRepository).deleteById(id);

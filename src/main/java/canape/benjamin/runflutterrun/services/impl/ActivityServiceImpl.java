@@ -78,9 +78,18 @@ public class ActivityServiceImpl implements IActivityService {
      * @throws EntityNotFoundException if the activity with the given ID is not found
      */
     @Override
-    public Activity getById(long id) {
-        return activityRepository.findById(id).orElseThrow(
+    public Activity getById(String token, long id) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
+        Activity activity = activityRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Activity with id: " + id + " is not available."));
+
+        if (activity.getUser().getId().equals(user.getId())){
+            return activity;
+        }
+
+        throw new SecurityException("You don't have the right to retrieve this activity");
     }
 
     /**
@@ -91,18 +100,25 @@ public class ActivityServiceImpl implements IActivityService {
      * @throws EntityNotFoundException if the activity with the given ID is not found
      */
     @Override
-    public Activity update(Activity activity) {
+    public Activity update(String token, Activity activity) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
         Activity existingActivity = activityRepository.findById(activity.getId()).orElseThrow(
                 () -> new EntityNotFoundException("Activity with id: " + activity.getId() + " is not available."));
 
-        Activity updatedActivity = calculateMetrics(activity);
-        existingActivity.setType(updatedActivity.getType());
-        existingActivity.setDistance(updatedActivity.getDistance());
-        existingActivity.setStartDatetime(updatedActivity.getStartDatetime());
-        existingActivity.setEndDatetime(updatedActivity.getEndDatetime());
-        existingActivity.setSpeed(updatedActivity.getSpeed());
+        if(existingActivity.getUser().getId().equals(user.getId())) {
+            Activity updatedActivity = calculateMetrics(activity);
+            existingActivity.setType(updatedActivity.getType());
+            existingActivity.setDistance(updatedActivity.getDistance());
+            existingActivity.setStartDatetime(updatedActivity.getStartDatetime());
+            existingActivity.setEndDatetime(updatedActivity.getEndDatetime());
+            existingActivity.setSpeed(updatedActivity.getSpeed());
 
-        return activityRepository.save(existingActivity);
+            return activityRepository.save(existingActivity);
+        }
+
+        throw new SecurityException("You don't have the right to update this activity");
     }
 
     /**
@@ -111,8 +127,17 @@ public class ActivityServiceImpl implements IActivityService {
      * @param id the ID of the activity to delete
      */
     @Override
-    public void delete(long id) {
-        activityRepository.deleteById(id);
+    public void delete(String token, long id) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
+        Activity activity = getById(token, id);
+        if(activity.getUser().getId().equals(user.getId())) {
+            activityRepository.deleteById(id);
+            return;
+        }
+
+        throw new SecurityException("You don't have the right to delete this activity");
     }
 
     /**
