@@ -20,6 +20,7 @@ public interface ICrudService<T> {
     /**
      * Get an entity by its ID.
      *
+     * @param token The authorization token.
      * @param id the ID of the entity
      * @return the entity with the specified ID
      */
@@ -28,6 +29,7 @@ public interface ICrudService<T> {
     /**
      * Update an entity.
      *
+     * @param token The authorization token.
      * @param t the entity to update
      * @return the updated entity
      */
@@ -36,6 +38,7 @@ public interface ICrudService<T> {
     /**
      * Delete an entity by its ID.
      *
+     * @param token The authorization token.
      * @param id the ID of the entity to delete
      */
     void delete(String token, long id);

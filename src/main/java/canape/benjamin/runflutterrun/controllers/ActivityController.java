@@ -68,6 +68,7 @@ public class ActivityController {
      * Retrieves an activity by its ID.
      *
      * @param id The ID of the activity.
+     * @param token The authorization token.
      * @return The retrieved ActivityDto object.
      */
     @GetMapping(value = "/{id}", produces = "application/json")
@@ -83,6 +84,7 @@ public class ActivityController {
      * Updates an existing activity.
      *
      * @param activity The updated ActivityDto object.
+     * @param token The authorization token.
      * @return The updated ActivityDto object.
      */
     @PutMapping(value = "/", consumes = "application/json")
@@ -98,6 +100,7 @@ public class ActivityController {
      * Deletes an activity.
      *
      * @param id The ID of the activity to delete.
+     * @param token The authorization token.
      * @return A ResponseEntity with the deletion status.
      */
     @DeleteMapping(value = "/")

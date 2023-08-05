@@ -72,10 +72,11 @@ public class ActivityServiceImpl implements IActivityService {
 
     /**
      * Retrieve an activity by its ID.
-     *
+     * @param token the authentication token of the user
      * @param id the ID of the activity
      * @return the retrieved activity
      * @throws EntityNotFoundException if the activity with the given ID is not found
+     * @throws SecurityException if the activity does not belong to the authentificated user
      */
     @Override
     public Activity getById(String token, long id) {
@@ -95,9 +96,11 @@ public class ActivityServiceImpl implements IActivityService {
     /**
      * Update an existing activity.
      *
+     * @param token the authentication token of the user
      * @param activity the updated activity
      * @return the updated activity
      * @throws EntityNotFoundException if the activity with the given ID is not found
+     * @throws SecurityException if the activity does not belong to the authentificated user
      */
     @Override
     public Activity update(String token, Activity activity) {
@@ -124,7 +127,9 @@ public class ActivityServiceImpl implements IActivityService {
     /**
      * Delete an activity by its ID.
      *
+     * @param token the authentication token of the user
      * @param id the ID of the activity to delete
+     * @throws SecurityException if the activity does not belong to the authentificated user
      */
     @Override
     public void delete(String token, long id) {
