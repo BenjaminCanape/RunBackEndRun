@@ -4,6 +4,8 @@ import canape.benjamin.runflutterrun.dto.EditPasswordDto;
 import canape.benjamin.runflutterrun.model.User;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface IUserService {
     /**
@@ -13,6 +15,14 @@ public interface IUserService {
      * @return the ID of the created user
      */
     Long create(User user);
+
+    /**
+     * Search users by text.
+     *
+     * @param searchText the search text
+     * @return the found user, or null if not found
+     */
+    List<User> search(String token, String searchText);
 
     /**
      * Find a user by username.

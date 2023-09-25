@@ -37,4 +37,27 @@ public class User extends AbstractEntity {
      */
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private RefreshToken refreshToken;
+
+    /**
+     * The friend requests send by this user
+     */
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<FriendRequest> sentFriendRequests;
+
+    /**
+     * The friend requests received by this user
+     */
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<FriendRequest> receivedFriendRequests;
+
+    /**
+     * The friends of this user
+     */
+    @ManyToMany
+    @JoinTable(
+            name = "user_friends",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "friend_id")
+    )
+    private List<User> friends;
 }

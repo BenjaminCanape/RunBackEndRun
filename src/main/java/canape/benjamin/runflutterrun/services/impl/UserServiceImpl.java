@@ -11,6 +11,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements IUserService {
@@ -33,6 +35,18 @@ public class UserServiceImpl implements IUserService {
         }
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         return userRepository.save(user).getId();
+    }
+
+    /**
+     * Search users by the search text.
+     *
+     * @param token the current user token
+     * @param searchText the text which will serve to find users
+     * @return the user object
+     */
+    @Override
+    public List<User> search(String token, String searchText) {
+        return userRepository.search(searchText);
     }
 
     /**

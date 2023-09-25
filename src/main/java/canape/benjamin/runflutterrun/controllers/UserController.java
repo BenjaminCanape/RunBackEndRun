@@ -1,8 +1,6 @@
 package canape.benjamin.runflutterrun.controllers;
 
-import canape.benjamin.runflutterrun.dto.EditPasswordDto;
-import canape.benjamin.runflutterrun.dto.RefreshTokenDto;
-import canape.benjamin.runflutterrun.dto.UserDto;
+import canape.benjamin.runflutterrun.dto.*;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.services.IRefreshTokenService;
 import canape.benjamin.runflutterrun.services.IUserService;
@@ -14,6 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping("/api")
@@ -32,6 +34,7 @@ public class UserController {
 
     @Autowired
     private IRefreshTokenService refreshTokenService;
+
 
     /**
      * Creates a new user.
@@ -98,13 +101,32 @@ public class UserController {
         }
     }
 
+    /**
+     * Retrieves users based on the search value
+     *
+     * @param token The authorization token.
+     * @return A list of ActivityDto objects.
+     */
+    @GetMapping(value = "/private/user/search", produces = "application/json")
+    public List<UserSearchDto> search(@RequestHeader(name = "Authorization") String token, @RequestParam String searchText) {
+        try {
+            return userCrudService.search(token, searchText).stream()
+                    .toList().stream().map(this::convertToSearchDTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get users", e);
+        }
+    }
+
     private User convertToEntity(UserDto userDto) {
-        User user = modelMapper.map(userDto, User.class);
-        return user;
+        return modelMapper.map(userDto, User.class);
     }
 
     private UserDto convertToDTO(User user) {
-        UserDto userDto = modelMapper.map(user, UserDto.class);
-        return userDto;
+        return modelMapper.map(user, UserDto.class);
+    }
+
+    private UserSearchDto convertToSearchDTO(User user) {
+        return modelMapper.map(user, UserSearchDto.class);
     }
 }
