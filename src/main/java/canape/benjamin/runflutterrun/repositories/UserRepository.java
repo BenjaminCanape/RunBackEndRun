@@ -6,6 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,6 +20,15 @@ public interface UserRepository extends CrudRepository<User, Long> {
      */
     @Query("select u from User u where u.id = :id")
     Optional<User> findUserById(@Param("id") long id);
+
+    /**
+     * Retrieves users corresponding to the search text
+     *
+     * @param searchText The search text.
+     * @return A List containing the user who correspond to the search text.
+     */
+    @Query("select u from User u where u.username like %:searchText%")
+    List<User> search(@Param("searchText") String searchText);
 
     /**
      * Retrieves a user by their username.
