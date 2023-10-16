@@ -46,7 +46,8 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public List<User> search(String token, String searchText) {
-        return userRepository.search(searchText);
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        return userRepository.search(searchText, username);
     }
 
     /**

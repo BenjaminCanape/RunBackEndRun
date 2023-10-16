@@ -27,8 +27,8 @@ public interface UserRepository extends CrudRepository<User, Long> {
      * @param searchText The search text.
      * @return A List containing the user who correspond to the search text.
      */
-    @Query("select u from User u where u.username like %:searchText%")
-    List<User> search(@Param("searchText") String searchText);
+    @Query("select u from User u where u.username like %:searchText% and u.username <> :currentUsername")
+    List<User> search(@Param("searchText") String searchText, @Param("currentUsername") String currentUsername);
 
     /**
      * Retrieves a user by their username.
