@@ -20,6 +20,17 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
      * @return The friend request send to the receiver user which have a specific status.
      */
     List<FriendRequest> findByReceiverAndStatus(User receiver, FriendRequestStatus status);
+
+    /**
+     * Retrieves the user friend request with a specific status
+     *
+     * @param user The user.
+     * @param status The status of the friend request we search.
+     * @return The friend request send to the receiver user which have a specific status.
+     */
+    @Query("select r from FriendRequest r where (r.sender = :user or r.receiver = :user) and r.status = :status")
+    List<FriendRequest> findByUserAndStatus(User user, FriendRequestStatus status);
+
     /**
      * Retrieves the friend request send to the receiver user by the sender user
      *

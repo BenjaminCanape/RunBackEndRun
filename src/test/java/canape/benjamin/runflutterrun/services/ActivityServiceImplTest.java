@@ -35,10 +35,13 @@ class ActivityServiceImplTest {
     @Mock
     private ActivityRepository activityRepository;
 
+    @Mock
+    private IFriendRequestService friendRequestService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        activityService = new ActivityServiceImpl(jwtUtils, userRepository, activityRepository);
+        activityService = new ActivityServiceImpl(jwtUtils, userRepository, activityRepository, friendRequestService);
     }
 
     @Test
