@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -36,4 +37,13 @@ public interface ActivityRepository extends CrudRepository<Activity, Long> {
      */
     @Query("select a from Activity a left join fetch a.user u where u = :user order by a.startDatetime DESC")
     Iterable<Activity> findAllByOrderByStartDatetimeDescAndUser(@Param("user") User user);
+
+    /**
+     * Retrieves all activities associated with specific users, sorted by start datetime in descending order.
+     *
+     * @param users The users for which to retrieve activities.
+     * @return An iterable collection of activities.
+     */
+    @Query("select a from Activity a left join fetch a.user u where u in :users order by a.startDatetime DESC")
+    Iterable<Activity> findAllByOrderByStartDatetimeDescAndUsers(@Param("users") List<User> users);
 }

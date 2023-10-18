@@ -6,11 +6,14 @@ import canape.benjamin.runflutterrun.repositories.ActivityRepository;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
 import canape.benjamin.runflutterrun.services.IActivityService;
+import canape.benjamin.runflutterrun.services.IFriendRequestService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -19,6 +22,7 @@ public class ActivityServiceImpl implements IActivityService {
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
+    private final IFriendRequestService friendRequestService;
 
     /**
      * Retrieve all activities in descending order of start datetime.
@@ -52,6 +56,42 @@ public class ActivityServiceImpl implements IActivityService {
         String username = jwtUtils.getUserNameFromJwtToken(token);
         User user = userRepository.findByUsername(username);
         return activityRepository.findAllByOrderByStartDatetimeDescAndUser(user);
+    }
+
+    /**
+     * Retrieve all my activities and my friends in descending order of start datetime.
+     *
+     * @param token the authentication token of the user
+     * @return Iterable of activities
+     */
+    @Override
+    public Iterable<Activity> getMineAndMyFriends(String token) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+        List<User> friends = friendRequestService.getFriends(token);
+        friends.add(user);
+        return activityRepository.findAllByOrderByStartDatetimeDescAndUsers(friends);
+    }
+
+    /**
+     * Retrieve all a user activities
+     *
+     * @param token the authentication token of the user
+     * @param userId user id
+     * @return Iterable of activities
+     */
+    @Override
+    public Iterable<Activity> getByUser(String token, Long userId) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+        if (friendRequestService.areFriends(token, userId)) {
+            Optional<User> otherUser = userRepository.findUserById(userId);
+            if (otherUser.isPresent()) {
+                return activityRepository.findAllByOrderByStartDatetimeDescAndUser(otherUser.get());
+            }
+        }
+
+        throw new SecurityException("You don't have the right to retrieve this user's activities");
     }
 
     /**

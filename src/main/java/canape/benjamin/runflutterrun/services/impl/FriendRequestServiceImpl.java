@@ -11,6 +11,8 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -124,6 +126,54 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      */
     public FriendRequest cancelFriendRequest(String token, Long userId) {
         return this.updateFriendRequest(token, userId, FriendRequestStatus.CANCELED);
+    }
+
+
+    /**
+     * checks if the two users are friends
+     *
+     * @param token the current user token
+     * @param userId The other user id
+     * @return true if they are friends, else false
+     */
+    public boolean areFriends(String token, Long userId) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+        Optional<User> receiver = userRepository.findUserById(userId);
+
+        if (receiver.isPresent()) {
+            Optional<FriendRequest> existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, receiver.get());
+
+            if (existingFriendRequest.isPresent()) {
+                return existingFriendRequest.get().getStatus() == FriendRequestStatus.ACCEPTED;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * get the friends of the current user
+     *
+     * @param token the current user token
+     * @return list of user
+     */
+    public List<User> getFriends(String token) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
+        List<FriendRequest> friendRequests = friendRequestRepository.findByUserAndStatus(user, FriendRequestStatus.ACCEPTED);
+
+        List<User> friends = new ArrayList<>();
+        for (FriendRequest item : friendRequests) {
+            if (item.getSender() == user) {
+                friends.add(item.getReceiver());
+            }
+            else {
+                friends.add(item.getSender());
+            }
+        }
+        return friends;
     }
 
     /**

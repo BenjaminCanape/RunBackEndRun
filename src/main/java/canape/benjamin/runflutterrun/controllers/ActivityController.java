@@ -48,6 +48,44 @@ public class ActivityController {
         }
     }
 
+
+    /**
+     * Retrieves my activities and my friends.
+     *
+     * @param token The authorization token.
+     * @return A list of ActivityDto objects.
+     */
+    @GetMapping(value = "/friends", produces = "application/json")
+    public List<ActivityDto> getMineAndMyFriends(@RequestHeader(name = "Authorization") String token) {
+        try {
+            return StreamSupport
+                    .stream(activityCrudService.getMineAndMyFriends(token).spliterator(), false)
+                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(activity))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activities", e);
+        }
+    }
+
+    /**
+     * Retrieves the activities of a specific user
+     *
+     * @param id The ID of the user.
+     * @param token The authorization token.
+     * @return A list of ActivityDto objects.
+     */
+    @GetMapping(value = "/user/{id}", produces = "application/json")
+    public List<ActivityDto> getByUser(@PathVariable long id, @RequestHeader(name = "Authorization") String token) {
+        try {
+            return StreamSupport
+                    .stream(activityCrudService.getByUser(token, id).spliterator(), false)
+                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(activity))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activities", e);
+        }
+    }
+
     /**
      * Creates a new activity.
      *

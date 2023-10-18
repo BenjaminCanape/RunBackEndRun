@@ -49,15 +49,4 @@ public class User extends AbstractEntity {
      */
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FriendRequest> receivedFriendRequests;
-
-    /**
-     * The friends of this user
-     */
-    @ManyToMany
-    @JoinTable(
-            name = "user_friends",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "friend_id")
-    )
-    private List<User> friends;
 }

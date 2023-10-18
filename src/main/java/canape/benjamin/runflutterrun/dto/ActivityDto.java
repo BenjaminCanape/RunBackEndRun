@@ -19,4 +19,5 @@ public class ActivityDto {
     private Double speed;
     private long time;
     private List<LocationDto> locations;
+    private UserSearchDto user;
 }

@@ -1,6 +1,7 @@
 package canape.benjamin.runflutterrun.services;
 
 import canape.benjamin.runflutterrun.model.FriendRequest;
+import canape.benjamin.runflutterrun.model.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -65,5 +66,23 @@ public interface IFriendRequestService {
      * @return The canceled FriendRequest object.
      */
     FriendRequest cancelFriendRequest(String token, Long userId);
+
+
+    /**
+     * checks if the two users are friends
+     *
+     * @param token the current user token
+     * @param userId The other user id
+     * @return true if they are friends, else false
+     */
+    boolean areFriends(String token, Long userId);
+
+    /**
+     * get the friends of the current user
+     *
+     * @param token the current user token
+     * @return list of user
+     */
+    List<User> getFriends(String token);
 }
 
