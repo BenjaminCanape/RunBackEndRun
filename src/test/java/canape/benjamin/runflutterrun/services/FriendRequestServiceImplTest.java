@@ -139,16 +139,27 @@ public class FriendRequestServiceImplTest {
         Long receiverId = 2L;
         User sender = createUser(1L, "sender");
         User receiver = createUser(receiverId, "receiver");
+        FriendRequest request = new FriendRequest();
+        request.setStatus(FriendRequestStatus.PENDING);
+        request.setReceiver(receiver);
+        request.setSender(sender);
 
         when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(sender.getUsername());
         when(userRepository.findByUsername(sender.getUsername())).thenReturn(sender);
         when(userRepository.findUserById(receiverId)).thenReturn(Optional.of(receiver));
         when(friendRequestRepository.findBySenderAndReceiver(sender, receiver)).thenReturn(
-                Optional.of(createFriendRequest(1L, sender, receiver, FriendRequestStatus.PENDING))
+                Optional.of(request)
         );
+        when(friendRequestRepository.save(any(FriendRequest.class))).thenReturn(request);
 
-        // Act and Assert
-        assertThrows(EntityExistsException.class, () -> friendRequestService.sendFriendRequest(token, receiverId));
+        // Act
+        FriendRequest sentRequest = friendRequestService.sendFriendRequest(token, receiverId);
+
+        // Assert
+        assertNotNull(request);
+        assertEquals(sender, request.getSender());
+        assertEquals(receiver, request.getReceiver());
+        assertEquals(FriendRequestStatus.PENDING, request.getStatus());
     }
 
     // Implement other test methods similarly
