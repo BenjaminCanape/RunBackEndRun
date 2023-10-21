@@ -13,6 +13,17 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class User extends AbstractEntity {
+    /**
+     * The firstname of the user.
+     */
+    @Column(name = "firstname")
+    private String firstname;
+
+    /**
+     * The lastname of the user.
+     */
+    @Column(name = "lastname")
+    private String lastname;
 
     /**
      * The username of the user.

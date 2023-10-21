@@ -70,23 +70,21 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
     public FriendRequest sendFriendRequest(String token, Long receiverId) {
         String username = jwtUtils.getUserNameFromJwtToken(token);
         User user = userRepository.findByUsername(username);
-        Optional<User> receiver = userRepository.findUserById(receiverId);
+        User receiver = userRepository.findUserById(receiverId)
+                .orElseThrow(() -> new EntityNotFoundException("No user with id: " + receiverId));
 
-        if (receiver.isEmpty()) {
-            throw new EntityNotFoundException("No user with id: " + receiverId.toString());
-        }
-        Optional<FriendRequest> existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, receiver.get());
-
-        if (existingFriendRequest.isPresent()) {
-            throw new EntityExistsException("Friend request already exists.");
-        }
-
-        FriendRequest friendRequest = new FriendRequest();
-        friendRequest.setSender(user);
-        friendRequest.setReceiver(receiver.get());
-        friendRequest.setStatus(FriendRequestStatus.PENDING);
-
-        return friendRequestRepository.save(friendRequest);
+        FriendRequest existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, receiver)
+                .orElseGet(() -> {
+                    FriendRequest friendRequest = new FriendRequest();
+                    friendRequest.setSender(user);
+                    friendRequest.setReceiver(receiver);
+                    friendRequest.setStatus(FriendRequestStatus.PENDING);
+                    return friendRequest;
+                });
+        existingFriendRequest.setSender(user);
+        existingFriendRequest.setReceiver(receiver);
+        existingFriendRequest.setStatus(FriendRequestStatus.PENDING);
+        return friendRequestRepository.save(existingFriendRequest);
     }
 
     /**
