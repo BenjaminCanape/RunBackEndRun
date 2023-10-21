@@ -200,7 +200,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
 
         FriendRequest friendRequest = existingFriendRequest.get();
 
-        if (!friendRequest.getReceiver().getId().equals(user.getId())) {
+        if (!friendRequest.getReceiver().getId().equals(user.getId()) && !friendRequest.getSender().getId().equals(user.getId())) {
             throw new SecurityException("Friend request doesn't concern you.");
         }
 
