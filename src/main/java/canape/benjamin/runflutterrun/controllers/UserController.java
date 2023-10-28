@@ -89,9 +89,9 @@ public class UserController {
      *
      * @param token The authorization token.
      * @param editProfileDto The EditProfileDto object containing the profile details.
-     * @return The ID of the user whose password was edited.
+     * @return The ID of the user whose profile was edited.
      */
-    @PutMapping(value = "/private/user/editPassword", consumes = "application/json")
+    @PutMapping(value = "/private/user/editProfile", consumes = "application/json")
     public Long editProfile(@RequestHeader(name = "Authorization") String token, @RequestBody EditProfileDto editProfileDto) {
         try {
             return userCrudService.editProfile(token, editProfileDto);
