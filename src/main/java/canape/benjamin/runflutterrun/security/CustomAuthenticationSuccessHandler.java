@@ -1,11 +1,15 @@
 package canape.benjamin.runflutterrun.security;
 
+import canape.benjamin.runflutterrun.dto.UserSearchDto;
 import canape.benjamin.runflutterrun.model.RefreshToken;
+import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
 import canape.benjamin.runflutterrun.services.IRefreshTokenService;
+import canape.benjamin.runflutterrun.services.IUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,6 +28,10 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     private JwtUtils jwtUtils;
     @Autowired
     private IRefreshTokenService refreshTokenService;
+    @Autowired
+    private IUserService userService;
+    @Autowired
+    private ModelMapper modelMapper;
 
     /**
      * Handles the successful authentication.
@@ -40,9 +48,13 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUsername());
 
+        User user = userService.findByUsername(userDetails.getUsername());
+        UserSearchDto userDto = modelMapper.map(user, UserSearchDto.class);
+
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("refreshToken", refreshToken.getToken());
         responseBody.put("token", jwt);
+        responseBody.put("user", userDto);
         responseBody.put("message", "Authentication successful");
 
         String jsonResponse = objectMapper.writeValueAsString(responseBody);

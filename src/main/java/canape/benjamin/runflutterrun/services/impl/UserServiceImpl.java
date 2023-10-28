@@ -1,6 +1,7 @@
 package canape.benjamin.runflutterrun.services.impl;
 
 import canape.benjamin.runflutterrun.dto.EditPasswordDto;
+import canape.benjamin.runflutterrun.dto.EditProfileDto;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
@@ -80,6 +81,24 @@ public class UserServiceImpl implements IUserService {
         }
 
         throw new BadCredentialsException("The current password is incorrect");
+    }
+
+    /**
+     * Edit the profile of a user.
+     *
+     * @param token the token associated with the user
+     * @param dto the dto with the updated profile
+     * @return the ID of the updated user
+     */
+    @Override
+    public Long editProfile(String token, EditProfileDto dto) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
+        user.setFirstname(dto.getFirstname());
+        user.setLastname(dto.getLastname());
+
+        return userRepository.save(user).getId();
     }
 
     /**
