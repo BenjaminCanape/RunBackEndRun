@@ -85,6 +85,22 @@ public class UserController {
     }
 
     /**
+     * Edits the profile of a user.
+     *
+     * @param token The authorization token.
+     * @param editProfileDto The EditProfileDto object containing the profile details.
+     * @return The ID of the user whose password was edited.
+     */
+    @PutMapping(value = "/private/user/editPassword", consumes = "application/json")
+    public Long editProfile(@RequestHeader(name = "Authorization") String token, @RequestBody EditProfileDto editProfileDto) {
+        try {
+            return userCrudService.editProfile(token, editProfileDto);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed edit profile", e);
+        }
+    }
+
+    /**
      * Deletes a user.
      *
      * @param token The authorization token.
