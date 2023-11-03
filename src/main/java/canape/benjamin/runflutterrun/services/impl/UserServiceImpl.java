@@ -11,7 +11,12 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @Service
@@ -21,6 +26,8 @@ public class UserServiceImpl implements IUserService {
     private JwtUtils jwtUtils;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private UserRepository userRepository;
+
+    private static final String UPLOAD_DIR = "/home/app/uploads/";
 
     /**
      * Create a new user.
@@ -111,5 +118,38 @@ public class UserServiceImpl implements IUserService {
         String username = jwtUtils.getUserNameFromJwtToken(token);
         User user = userRepository.findByUsername(username);
         userRepository.deleteById(user.getId());
+    }
+
+    /**
+     * Upload the profile picture of the current user
+     *
+     * @param token the token of the current user
+     * @param file the file to upload as the profile picture
+     */
+    @Override
+    public void uploadProfilePicture(String token, MultipartFile file) throws IOException {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
+        File uploadDir = new File(UPLOAD_DIR);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+
+        String fileName = user.getId().toString();
+        File uploadFile = new File(uploadDir, fileName);
+        file.transferTo(uploadFile);
+    }
+
+
+    /**
+     * Get profile picture of user of id
+     *
+     * @param id the user id
+     */
+    @Override
+    public File getProfilePicture(String id) {
+        Path filePath = Paths.get(UPLOAD_DIR + id);
+        return filePath.toFile();
     }
 }
