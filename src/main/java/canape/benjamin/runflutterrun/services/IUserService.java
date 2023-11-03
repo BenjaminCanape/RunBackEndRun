@@ -4,7 +4,10 @@ import canape.benjamin.runflutterrun.dto.EditPasswordDto;
 import canape.benjamin.runflutterrun.dto.EditProfileDto;
 import canape.benjamin.runflutterrun.model.User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -57,4 +60,19 @@ public interface IUserService {
      * @param token the token associated with the user to delete
      */
     void delete(String token);
+
+    /**
+     * Upload the profile picture of the current user
+     *
+     * @param token the token of the current user
+     * @param file the file to upload as the profile picture
+     */
+    void uploadProfilePicture(String token, MultipartFile file) throws IOException;
+
+    /**
+     * Get profile picture of user of id
+     *
+     * @param id the user id
+     */
+    File getProfilePicture(String id);
 }

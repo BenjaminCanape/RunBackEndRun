@@ -7,12 +7,18 @@ import canape.benjamin.runflutterrun.services.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +39,6 @@ public class UserController {
 
     @Autowired
     private IRefreshTokenService refreshTokenService;
-
 
     /**
      * Creates a new user.
@@ -131,6 +136,33 @@ public class UserController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get users", e);
         }
+    }
+
+    /**
+     * Upload the profile picture for the current user
+     *
+     * @param token The authorization token.
+     * @param file The file to upload
+     */
+    @PostMapping("/private/user/picture/upload")
+    public ResponseEntity<String> uploadProfilePicture(@RequestHeader(name = "Authorization") String token, @RequestParam("file") MultipartFile file) throws IOException {
+        userCrudService.uploadProfilePicture(token, file);
+        return ResponseEntity.ok("Successfully uploaded file");
+    }
+
+    /**
+     * Get the profile picture for a user whose id is passed in parameter
+     *
+     * @param id The id of the user
+     */
+    @GetMapping("/private/user/picture/download/{id}")
+    public ResponseEntity<Resource> downloadProfilePicture(@PathVariable String id) throws IOException {
+        File profilePicture = userCrudService.getProfilePicture(id);
+        Resource resource = new UrlResource(profilePicture.toURI());
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(resource);
     }
 
     private User convertToEntity(UserDto userDto) {
