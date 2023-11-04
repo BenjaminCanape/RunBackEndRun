@@ -158,6 +158,11 @@ public class UserController {
     @GetMapping("/private/user/picture/download/{id}")
     public ResponseEntity<Resource> downloadProfilePicture(@PathVariable String id) throws IOException {
         File profilePicture = userCrudService.getProfilePicture(id);
+
+        if (profilePicture == null) {
+            return ResponseEntity.notFound().build();
+        }
+
         Resource resource = new UrlResource(profilePicture.toURI());
 
         return ResponseEntity.ok()

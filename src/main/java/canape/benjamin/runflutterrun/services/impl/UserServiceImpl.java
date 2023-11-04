@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -141,7 +142,6 @@ public class UserServiceImpl implements IUserService {
         file.transferTo(uploadFile);
     }
 
-
     /**
      * Get profile picture of user of id
      *
@@ -149,7 +149,12 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public File getProfilePicture(String id) {
-        Path filePath = Paths.get(UPLOAD_DIR + id);
-        return filePath.toFile();
+        Path filePath = Paths.get(UPLOAD_DIR, id);
+
+        if (Files.exists(filePath)) {
+            return filePath.toFile();
+        } else {
+            return null;
+        }
     }
 }
