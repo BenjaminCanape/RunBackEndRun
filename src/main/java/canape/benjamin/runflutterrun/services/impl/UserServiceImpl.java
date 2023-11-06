@@ -8,6 +8,7 @@ import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
 import canape.benjamin.runflutterrun.services.IUserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 @Service
 @AllArgsConstructor
@@ -27,8 +32,7 @@ public class UserServiceImpl implements IUserService {
     private JwtUtils jwtUtils;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private UserRepository userRepository;
-
-    private static final String UPLOAD_DIR = "/home/app/uploads/";
+    private Environment env;
 
     /**
      * Create a new user.
@@ -129,17 +133,28 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public void uploadProfilePicture(String token, MultipartFile file) throws IOException {
+        String UPLOAD_DIR = env.getProperty("spring.uploads.folder");
         String username = jwtUtils.getUserNameFromJwtToken(token);
         User user = userRepository.findByUsername(username);
 
         File uploadDir = new File(UPLOAD_DIR);
         if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
+            try {
+                Path uploadDirPath = Paths.get(UPLOAD_DIR);
+                Files.createDirectories(uploadDirPath);
+                uploadDir.mkdirs();
+            } catch (IOException e) {
+                throw new RuntimeException("Could not initialize folder for upload ! ");
+            }
         }
 
-        String fileName = user.getId().toString();
-        File uploadFile = new File(uploadDir, fileName);
-        file.transferTo(uploadFile);
+        try (InputStream inputStream = file.getInputStream()) {
+            String fileName = user.getId().toString();
+            Path filePath = Paths.get(UPLOAD_DIR, fileName);
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     /**
@@ -149,7 +164,7 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public File getProfilePicture(String id) {
-        Path filePath = Paths.get(UPLOAD_DIR, id);
+        Path filePath = Paths.get(Objects.requireNonNull(env.getProperty("spring.uploads.folder")), id);
 
         if (Files.exists(filePath)) {
             return filePath.toFile();
