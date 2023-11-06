@@ -9,12 +9,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@TestPropertySource(properties = {
+        "spring.uploads.folder=uploads/"
+})
 class UserServiceImplTest {
 
     private UserServiceImpl userService;
@@ -24,11 +29,13 @@ class UserServiceImplTest {
     private JwtUtils jwtUtils;
     @Mock
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Mock
+    private Environment env;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        userService = new UserServiceImpl(jwtUtils, bCryptPasswordEncoder, userRepository);
+        userService = new UserServiceImpl(jwtUtils, bCryptPasswordEncoder, userRepository, env);
     }
 
     @Test
