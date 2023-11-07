@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -155,8 +156,8 @@ public class UserController {
      *
      * @param id The id of the user
      */
-    @GetMapping("/private/user/picture/download/{id}")
-    public ResponseEntity<Resource> downloadProfilePicture(@PathVariable String id) throws IOException {
+    @GetMapping("/user/picture/download/{id}")
+    public ResponseEntity<byte[]> downloadProfilePicture(@PathVariable String id) throws IOException {
         File profilePicture = userCrudService.getProfilePicture(id);
 
         if (profilePicture == null) {
@@ -165,9 +166,13 @@ public class UserController {
 
         Resource resource = new UrlResource(profilePicture.toURI());
 
+        InputStream inputStream = resource.getInputStream();
+        byte[] imageData = inputStream.readAllBytes();
+
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
-                .body(resource);
+                .body(imageData);
+
     }
 
     private User convertToEntity(UserDto userDto) {
