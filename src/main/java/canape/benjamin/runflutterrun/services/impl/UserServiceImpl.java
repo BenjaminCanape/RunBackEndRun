@@ -13,6 +13,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.webjars.NotFoundException;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +24,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
@@ -133,28 +135,11 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public void uploadProfilePicture(String token, MultipartFile file) throws IOException {
-        String UPLOAD_DIR = env.getProperty("spring.uploads.folder");
         String username = jwtUtils.getUserNameFromJwtToken(token);
         User user = userRepository.findByUsername(username);
-
-        File uploadDir = new File(UPLOAD_DIR);
-        if (!uploadDir.exists()) {
-            try {
-                Path uploadDirPath = Paths.get(UPLOAD_DIR);
-                Files.createDirectories(uploadDirPath);
-                uploadDir.mkdirs();
-            } catch (IOException e) {
-                throw new RuntimeException("Could not initialize folder for upload ! ");
-            }
-        }
-
-        try (InputStream inputStream = file.getInputStream()) {
-            String fileName = user.getId().toString();
-            Path filePath = Paths.get(UPLOAD_DIR, fileName);
-            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        byte[] imageData = file.getBytes();
+        user.setProfilePicture(imageData);
+        userRepository.save(user);
     }
 
     /**
@@ -163,13 +148,11 @@ public class UserServiceImpl implements IUserService {
      * @param id the user id
      */
     @Override
-    public File getProfilePicture(String id) {
-        Path filePath = Paths.get(Objects.requireNonNull(env.getProperty("spring.uploads.folder")), id);
-
-        if (Files.exists(filePath)) {
-            return filePath.toFile();
-        } else {
-            return null;
+    public byte[] getProfilePicture(String id) {
+        Optional<User> user = userRepository.findUserById(Long.parseLong(id));
+        if (user.isEmpty()) {
+            throw new NotFoundException("The user is not found");
         }
+        return user.get().getProfilePicture();
     }
 }
