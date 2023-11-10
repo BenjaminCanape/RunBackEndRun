@@ -74,5 +74,5 @@ public interface IUserService {
      *
      * @param id the user id
      */
-    File getProfilePicture(String id);
+    byte[] getProfilePicture(String id);
 }

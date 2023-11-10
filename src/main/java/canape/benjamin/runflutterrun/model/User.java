@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.util.List;
 
 @Entity
@@ -36,6 +38,13 @@ public class User extends AbstractEntity {
      */
     @Column(name = "password", nullable = false)
     private String password;
+
+    /**
+     * The profile picture of the user.
+     */
+    @JdbcTypeCode(Types.VARBINARY)
+    @Column(name = "profile_picture")
+    private byte[] profilePicture;
 
     /**
      * The list of activities associated with the user.
