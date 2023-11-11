@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public interface IUserService {
@@ -74,5 +75,5 @@ public interface IUserService {
      *
      * @param id the user id
      */
-    byte[] getProfilePicture(String id);
+    Map<String, Object> getProfilePicture(String id);
 }

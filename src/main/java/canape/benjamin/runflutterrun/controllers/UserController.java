@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -158,11 +159,11 @@ public class UserController {
      */
     @GetMapping("/user/picture/download/{id}")
     public ResponseEntity<byte[]> downloadProfilePicture(@PathVariable String id) throws IOException {
-        byte[] imageData = userCrudService.getProfilePicture(id);
-
+        Map<String, Object> picture = userCrudService.getProfilePicture(id);
+        MediaType mediaType = MediaType.parseMediaType((String) picture.get("contentType"));
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
-                .body(imageData);
+                .contentType(mediaType)
+                .body((byte[]) picture.get("imageData"));
 
     }
 

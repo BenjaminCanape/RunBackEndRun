@@ -22,9 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 @Service
@@ -138,7 +136,9 @@ public class UserServiceImpl implements IUserService {
         String username = jwtUtils.getUserNameFromJwtToken(token);
         User user = userRepository.findByUsername(username);
         byte[] imageData = file.getBytes();
+        String type = file.getContentType();
         user.setProfilePicture(imageData);
+        user.setProfilePictureType(type);
         userRepository.save(user);
     }
 
@@ -148,11 +148,14 @@ public class UserServiceImpl implements IUserService {
      * @param id the user id
      */
     @Override
-    public byte[] getProfilePicture(String id) {
+    public Map<String, Object> getProfilePicture(String id) {
         Optional<User> user = userRepository.findUserById(Long.parseLong(id));
         if (user.isEmpty()) {
             throw new NotFoundException("The user is not found");
         }
-        return user.get().getProfilePicture();
+        Map<String, Object> profilePicture = new HashMap<>();
+        profilePicture.put("contentType", user.get().getProfilePictureType());
+        profilePicture.put("imageData", user.get().getProfilePicture());
+        return profilePicture;
     }
 }

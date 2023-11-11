@@ -47,6 +47,12 @@ public class User extends AbstractEntity {
     private byte[] profilePicture;
 
     /**
+     * The profile picture type.
+     */
+    @Column(name = "profile_picture_type")
+    private String profilePictureType;
+
+    /**
      * The list of activities associated with the user.
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
