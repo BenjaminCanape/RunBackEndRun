@@ -148,8 +148,12 @@ public class UserController {
      */
     @PostMapping("/private/user/picture/upload")
     public ResponseEntity<String> uploadProfilePicture(@RequestHeader(name = "Authorization") String token, @RequestParam("file") MultipartFile file) throws IOException {
-        userCrudService.uploadProfilePicture(token, file);
-        return ResponseEntity.ok("Successfully uploaded file");
+        try {
+            userCrudService.uploadProfilePicture(token, file);
+            return ResponseEntity.ok("Successfully uploaded file");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload the profile picture", e);
+        }
     }
 
     /**
