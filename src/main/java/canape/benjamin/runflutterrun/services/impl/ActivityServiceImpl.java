@@ -1,7 +1,9 @@
 package canape.benjamin.runflutterrun.services.impl;
 
 import canape.benjamin.runflutterrun.model.Activity;
+import canape.benjamin.runflutterrun.model.ActivityLike;
 import canape.benjamin.runflutterrun.model.User;
+import canape.benjamin.runflutterrun.repositories.ActivityLikeRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityRepository;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
@@ -10,6 +12,7 @@ import canape.benjamin.runflutterrun.services.IFriendRequestService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.webjars.NotFoundException;
 
 import java.util.Date;
 import java.util.List;
@@ -23,6 +26,7 @@ public class ActivityServiceImpl implements IActivityService {
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
     private final IFriendRequestService friendRequestService;
+    private final ActivityLikeRepository activityLikeRepository;
 
     /**
      * Retrieve all activities in descending order of start datetime.
@@ -183,6 +187,75 @@ public class ActivityServiceImpl implements IActivityService {
         }
 
         throw new SecurityException("You don't have the right to delete this activity");
+    }
+
+    /**
+     * Like an activity
+     *
+     * @param id    the activity id to like
+     * @param token the user's token
+     */
+    @Override
+    public void like(Long id, String token) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
+        Activity activity = activityRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Activity not found"));
+
+        ActivityLike like = new ActivityLike();
+        like.setActivity(activity);
+        like.setUser(user);
+        like.setLikeDatetime(new Date());
+
+        activityLikeRepository.save(like);
+    }
+
+    /**
+     * Dislike an activity
+     *
+     * @param id the activity id to dislike
+     * @param token    the user's token
+     */
+    @Override
+    public void dislike(Long id, String token) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
+        Activity activity = activityRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Activity not found"));
+
+        activityLikeRepository.findByActivityAndUser(activity, user)
+                .ifPresent(activityLikeRepository::delete);
+    }
+
+    /**
+     * Get activity like count
+     *
+     * @param id the activity id to count likes
+     * @return likes count
+     */
+    @Override
+    public long getActivityLikeCount(Long id) {
+        return activityLikeRepository.countByActivityId(id);
+    }
+
+    /**
+     * Has current user liked activity
+     *
+     * @param id the activity id
+     * @param token    the user's token
+     * @return has current user liked activity
+     */
+    @Override
+    public boolean currentUserLiked(Long id, String token) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        User user = userRepository.findByUsername(username);
+
+        Activity activity = activityRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Activity not found"));
+
+        return activityLikeRepository.findByActivityAndUser(activity, user).isPresent();
     }
 
     /**

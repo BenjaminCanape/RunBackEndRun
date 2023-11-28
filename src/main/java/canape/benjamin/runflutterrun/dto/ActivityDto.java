@@ -20,4 +20,6 @@ public class ActivityDto {
     private long time;
     private List<LocationDto> locations;
     private UserSearchDto user;
+    private long likesCount;
+    private boolean hasCurrentUserLiked;
 }
