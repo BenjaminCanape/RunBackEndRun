@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.webjars.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,7 @@ public class ActivityController {
         try {
             return StreamSupport
                     .stream(activityCrudService.getAll(token).spliterator(), false)
-                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(activity))
+                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(token, activity))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activities", e);
@@ -60,7 +61,7 @@ public class ActivityController {
         try {
             return StreamSupport
                     .stream(activityCrudService.getMineAndMyFriends(token).spliterator(), false)
-                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(activity))
+                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(token, activity))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activities", e);
@@ -79,7 +80,7 @@ public class ActivityController {
         try {
             return StreamSupport
                     .stream(activityCrudService.getByUser(token, id).spliterator(), false)
-                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(activity))
+                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(token, activity))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activities", e);
@@ -96,7 +97,7 @@ public class ActivityController {
     @PostMapping(value = "/", consumes = "application/json")
     public ActivityDto create(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(activityCrudService.create(convertToEntity(activity), token));
+            return convertToDTO(token, activityCrudService.create(convertToEntity(activity), token));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create activity", e);
         }
@@ -112,7 +113,7 @@ public class ActivityController {
     @GetMapping(value = "/{id}", produces = "application/json")
     public ActivityDto retrieve(@PathVariable long id, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(activityCrudService.getById(token, id), true);
+            return convertToDTO(token, activityCrudService.getById(token, id), true);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activity", e);
         }
@@ -128,7 +129,7 @@ public class ActivityController {
     @PutMapping(value = "/", consumes = "application/json")
     public ActivityDto update(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(activityCrudService.update(token, convertToEntity(activity)));
+            return convertToDTO(token, activityCrudService.update(token, convertToEntity(activity)));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update activity", e);
         }
@@ -151,6 +152,44 @@ public class ActivityController {
         }
     }
 
+    /**
+     * Like an activity.
+     *
+     * @param id    The ID of the activity to like.
+     * @param token The authorization token.
+     * @return boolean
+     */
+    @PostMapping("/like")
+    public ResponseEntity<String> likeActivity(@RequestParam(value = "id") Long id, @RequestHeader(name = "Authorization") String token) {
+        try {
+            activityCrudService.like(id, token);
+            return ResponseEntity.ok("Activity liked successfully");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Activity not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Activity liked failed");
+        }
+    }
+
+    /**
+     * Dislike an activity.
+     *
+     * @param id    The ID of the activity to dislike.
+     * @param token The authorization token.
+     * @return boolean
+     */
+    @PostMapping("/dislike")
+    public ResponseEntity<String> dislikeActivity(@RequestParam(value = "id") Long id, @RequestHeader(name = "Authorization") String token) {
+        try {
+            activityCrudService.dislike(id, token);
+            return ResponseEntity.ok("Activity disliked successfully");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Activity not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Activity disliked failed");
+        }
+    }
+
     private Activity convertToEntity(ActivityDto activityDto) {
         Activity activity = modelMapper.map(activityDto, Activity.class);
 
@@ -165,11 +204,11 @@ public class ActivityController {
         return activity;
     }
 
-    private ActivityDto convertToDTO(Activity activity) {
-        return convertToDTO(activity, false);
+    private ActivityDto convertToDTO(String token, Activity activity) {
+        return convertToDTO(token, activity, false);
     }
 
-    private ActivityDto convertToDTO(Activity activity, Boolean fetchLocations) {
+    private ActivityDto convertToDTO(String token, Activity activity, Boolean fetchLocations) {
         List<LocationDto> locations = new ArrayList<>();
         if (fetchLocations) {
             activity.getLocations().forEach((location) ->
@@ -181,6 +220,13 @@ public class ActivityController {
         long time = Math.abs(activity.getEndDatetime().getTime() - activity.getStartDatetime().getTime());
         activityDto.setTime(time);
         activityDto.setLocations(locations);
+
+        long count = activityCrudService.getActivityLikeCount(activity.getId());
+        activityDto.setLikesCount(count);
+
+        boolean hasCurrentUserLiked = activityCrudService.currentUserLiked(activity.getId(), token);
+        activityDto.setHasCurrentUserLiked(hasCurrentUserLiked);
+
         return activityDto;
     }
 }

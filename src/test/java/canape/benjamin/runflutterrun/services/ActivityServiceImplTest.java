@@ -4,6 +4,7 @@ import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.Location;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.model.enums.ActivityType;
+import canape.benjamin.runflutterrun.repositories.ActivityLikeRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityRepository;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
@@ -38,10 +39,13 @@ class ActivityServiceImplTest {
     @Mock
     private IFriendRequestService friendRequestService;
 
+    @Mock
+    private ActivityLikeRepository activityLikeRepository;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        activityService = new ActivityServiceImpl(jwtUtils, userRepository, activityRepository, friendRequestService);
+        activityService = new ActivityServiceImpl(jwtUtils, userRepository, activityRepository, friendRequestService, activityLikeRepository);
     }
 
     @Test

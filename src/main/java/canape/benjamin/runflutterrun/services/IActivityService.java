@@ -39,4 +39,37 @@ public interface IActivityService extends ICrudService<Activity> {
      * @return the created activity
      */
     Activity create(Activity activity, String token);
+
+    /**
+     * Like an activity
+     *
+     * @param id    the activity id to like
+     * @param token the user's token
+     */
+    void like(Long id, String token);
+
+    /**
+     * Dislike an activity
+     *
+     * @param id the activity id to dislike
+     * @param token    the user's token
+     */
+    void dislike(Long id, String token);
+
+    /**
+     * Get activity like count
+     *
+     * @param id the activity id to count likes
+     * @return likes count
+     */
+    long getActivityLikeCount(Long id);
+
+    /**
+     * Has current user liked activity
+     *
+     * @param id the activity id
+     * @param token    the user's token
+     * @return has current user liked activity
+     */
+    boolean currentUserLiked(Long id, String token);
 }
