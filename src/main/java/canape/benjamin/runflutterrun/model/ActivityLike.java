@@ -12,16 +12,14 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ActivityLike {
+public class ActivityLike extends AbstractEntity {
 
-    @Id
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @Id
     @ManyToOne
-    @JoinColumn(name = "activity_id")
+    @JoinColumn(name = "activity_id", referencedColumnName = "id")
     private Activity activity;
 
     @Temporal(TemporalType.TIMESTAMP)
