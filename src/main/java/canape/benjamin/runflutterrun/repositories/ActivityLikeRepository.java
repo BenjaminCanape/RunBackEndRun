@@ -2,16 +2,12 @@ package canape.benjamin.runflutterrun.repositories;
 
 import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.ActivityLike;
-import canape.benjamin.runflutterrun.model.FriendRequest;
 import canape.benjamin.runflutterrun.model.User;
-import canape.benjamin.runflutterrun.model.enums.FriendRequestStatus;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
