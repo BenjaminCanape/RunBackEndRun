@@ -203,12 +203,15 @@ public class ActivityServiceImpl implements IActivityService {
         Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity not found"));
 
-        ActivityLike like = new ActivityLike();
-        like.setActivity(activity);
-        like.setUser(user);
-        like.setLikeDatetime(new Date());
+        Optional<ActivityLike> optionalActivityLike = activityLikeRepository.findByActivityAndUser(activity, user);
 
-        activityLikeRepository.save(like);
+        if (optionalActivityLike.isEmpty()) {
+            ActivityLike like = new ActivityLike();
+            like.setActivity(activity);
+            like.setUser(user);
+            like.setLikeDatetime(new Date());
+            activityLikeRepository.save(like);
+        }
     }
 
     /**
