@@ -1,9 +1,10 @@
 package canape.benjamin.runflutterrun.controllers;
 
-import canape.benjamin.runflutterrun.dto.ActivityDto;
-import canape.benjamin.runflutterrun.dto.LocationDto;
+import canape.benjamin.runflutterrun.dto.*;
 import canape.benjamin.runflutterrun.model.Activity;
+import canape.benjamin.runflutterrun.model.ActivityComment;
 import canape.benjamin.runflutterrun.model.Location;
+import canape.benjamin.runflutterrun.services.IActivityCommentService;
 import canape.benjamin.runflutterrun.services.IActivityService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -16,6 +17,7 @@ import org.webjars.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -30,6 +32,9 @@ public class ActivityController {
 
     @Autowired
     private IActivityService activityCrudService;
+
+    @Autowired
+    private IActivityCommentService activityCommentService;
 
     /**
      * Retrieves all activities.
@@ -113,7 +118,7 @@ public class ActivityController {
     @GetMapping(value = "/{id}", produces = "application/json")
     public ActivityDto retrieve(@PathVariable long id, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(token, activityCrudService.getById(token, id), true);
+            return convertToDTO(token, activityCrudService.getById(token, id), true, false);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activity", e);
         }
@@ -129,7 +134,7 @@ public class ActivityController {
     @PutMapping(value = "/", consumes = "application/json")
     public ActivityDto update(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(token, activityCrudService.update(token, convertToEntity(activity)));
+            return convertToDTO(token, activityCrudService.update(token, convertToEntity(activity)), false, false);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update activity", e);
         }
@@ -190,6 +195,57 @@ public class ActivityController {
         }
     }
 
+    /**
+     * Creates a comment
+     *
+     * @param comment The string containing the activity comment
+     * @param activityId The activity Id
+     * @param token The authorization token.
+     * @return The created ActivityCommentDto object.
+     */
+    @PostMapping(value = "/comment")
+    public ActivityCommentDto createComment(@RequestParam("comment") String comment, @RequestParam("activityId") Long activityId, @RequestHeader(name = "Authorization") String token) {
+        try {
+            return convertCommentToDTO(activityCommentService.create(comment, activityId, token));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create comment", e);
+        }
+    }
+
+    /**
+     * Updates an existing comment.
+     *
+     * @param id The id of the comment.
+     * @param comment The comment.
+     * @param token The authorization token.
+     * @return The updated ActivityCommentDto object.
+     */
+    @PutMapping(value = "/comment")
+    public ActivityCommentDto updateComment(@RequestParam("id") Long id, @RequestParam("comment") String comment, @RequestHeader(name = "Authorization") String token) {
+        try {
+            return convertCommentToDTO(activityCommentService.update(id, comment, token));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update comment", e);
+        }
+    }
+
+    /**
+     * Deletes a comment.
+     *
+     * @param id The ID of the activity to delete.
+     * @param token The authorization token.
+     * @return A ResponseEntity with the deletion status.
+     */
+    @DeleteMapping(value = "/comment")
+    public ResponseEntity<String> deleteComment(@RequestParam(value = "id") Long id, @RequestHeader(name = "Authorization") String token) {
+        try {
+            activityCommentService.delete(token, id);
+            return ResponseEntity.ok("Comment successfully deleted");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Comment deletion failed");
+        }
+    }
+
     private Activity convertToEntity(ActivityDto activityDto) {
         Activity activity = modelMapper.map(activityDto, Activity.class);
 
@@ -201,18 +257,35 @@ public class ActivityController {
         });
 
         activity.setLocations(locations);
+        activity.setComments(new ArrayList<>());
         return activity;
     }
 
     private ActivityDto convertToDTO(String token, Activity activity) {
-        return convertToDTO(token, activity, false);
+        return convertToDTO(token, activity, false, true);
     }
 
-    private ActivityDto convertToDTO(String token, Activity activity, Boolean fetchLocations) {
+    private ActivityCommentDto convertCommentToDTO(ActivityComment activityComment) {
+        UserSearchDto userDto = modelMapper.map(activityComment.getUser(), UserSearchDto.class);
+        ActivityCommentDto commentDto =  modelMapper.map(activityComment, ActivityCommentDto.class);
+        commentDto.setUser(userDto);
+
+        return commentDto;
+    }
+
+
+    private ActivityDto convertToDTO(String token, Activity activity, Boolean fetchLocations, Boolean fetchComments) {
         List<LocationDto> locations = new ArrayList<>();
         if (fetchLocations) {
             activity.getLocations().forEach((location) ->
                     locations.add(modelMapper.map(location, LocationDto.class))
+            );
+        }
+
+        List<ActivityCommentDto> comments = new ArrayList<>();
+        if (fetchComments) {
+            activity.getComments().forEach((comment) ->
+                    comments.add(convertCommentToDTO(comment))
             );
         }
 
@@ -226,6 +299,7 @@ public class ActivityController {
 
         boolean hasCurrentUserLiked = activityCrudService.currentUserLiked(activity.getId(), token);
         activityDto.setHasCurrentUserLiked(hasCurrentUserLiked);
+        activityDto.setComments(Optional.of(comments));
 
         return activityDto;
     }

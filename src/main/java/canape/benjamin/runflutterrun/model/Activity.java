@@ -60,4 +60,11 @@ public class Activity extends AbstractEntity {
     @OneToMany(targetEntity = Location.class, orphanRemoval = true, mappedBy = "activity", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Location> locations;
 
+    /**
+     * The comments associated with the activity.
+     */
+    @OneToMany(targetEntity = ActivityComment.class, orphanRemoval = true, mappedBy = "activity", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OrderBy("createdAt ASC")
+    private List<ActivityComment> comments;
+
 }

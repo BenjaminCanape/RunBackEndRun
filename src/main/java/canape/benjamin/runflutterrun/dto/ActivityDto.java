@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Data Transfer Object (DTO) for representing an activity.
@@ -22,4 +23,5 @@ public class ActivityDto {
     private UserSearchDto user;
     private long likesCount;
     private boolean hasCurrentUserLiked;
+    private Optional<List<ActivityCommentDto>> comments;
 }
