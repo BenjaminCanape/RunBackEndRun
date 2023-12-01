@@ -23,6 +23,7 @@ public interface IActivityCommentService {
      * Update an existing activity comment.
      *
      * @param id the comment id
+     * @param comment the comment string
      * @param token the authentication token of the user
      * @return the updated activity comment
      * @throws EntityNotFoundException if the activity comment with the given ID is not found
@@ -31,11 +32,11 @@ public interface IActivityCommentService {
     ActivityComment update(Long id, String comment, String token);
 
     /**
-     * Delete an activity by its ID.
+     * Delete an activity comment by its ID.
      *
      * @param token the authentication token of the user
-     * @param id the ID of the activity to delete
-     * @throws SecurityException if the activity does not belong to the authentificated user
+     * @param id the ID of the activity comment to delete
+     * @throws SecurityException if the activity comment does not belong to the authentificated user
      * @throws NotFoundException if the activity comment with the given ID is not found
      */
     void delete(String token, long id);
