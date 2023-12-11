@@ -75,4 +75,16 @@ public class User extends AbstractEntity {
      */
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FriendRequest> receivedFriendRequests;
+
+    /**
+     * The list of comments associated with the user.
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityComment> comments;
+
+    /**
+     * The list of likes associated with the user.
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityLike> likes;
 }

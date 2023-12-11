@@ -67,4 +67,10 @@ public class Activity extends AbstractEntity {
     @OrderBy("createdAt ASC")
     private List<ActivityComment> comments;
 
+    /**
+     * The list of likes associated with the user.
+     */
+    @OneToMany(targetEntity = ActivityLike.class, mappedBy = "activity", orphanRemoval = true, cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<ActivityLike> likes;
+
 }
