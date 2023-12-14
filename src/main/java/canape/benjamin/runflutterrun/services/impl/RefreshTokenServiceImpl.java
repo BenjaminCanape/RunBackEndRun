@@ -1,6 +1,7 @@
 package canape.benjamin.runflutterrun.services.impl;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import canape.benjamin.runflutterrun.services.IRefreshTokenService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.webjars.NotFoundException;
 
 import static canape.benjamin.runflutterrun.security.SecurityConstants.REFRESH_EXPIRATION_TIME;
 
@@ -62,15 +64,12 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
      */
     @Transactional()
     public RefreshToken createRefreshToken(String username) {
-        User user = userRepository.findByUsername(username);
-        RefreshToken refreshToken = user.getRefreshToken();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
-        if (refreshToken == null) {
-            refreshToken = new RefreshToken();
-            refreshToken.setUser(userRepository.findByUsername(username));
-        }
-
-        refreshToken.setExpiryDate(Instant.now().plusMillis(REFRESH_EXPIRATION_TIME));
+        RefreshToken refreshToken = Optional.ofNullable(user.getRefreshToken()).orElseGet(RefreshToken::new);
+        refreshToken.setUser(user);
+        refreshToken.setExpiryDate(Instant.now().plus(REFRESH_EXPIRATION_TIME, ChronoUnit.MILLIS));
         refreshToken.setToken(UUID.randomUUID().toString());
 
         refreshToken = refreshTokenRepository.save(refreshToken);
@@ -85,7 +84,9 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
      */
     @Transactional()
     public int deleteByUsername(String username) {
-        return refreshTokenRepository.deleteByUser(userRepository.findByUsername(username));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return refreshTokenRepository.deleteByUser(user);
     }
 
     /**
@@ -96,7 +97,7 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
      * @throws RefreshTokenException if the refresh token is expired
      */
     public RefreshToken verifyExpiration(RefreshToken token) {
-        if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
+        if (token.getExpiryDate().isBefore(Instant.now())) {
             refreshTokenRepository.delete(token);
             throw new RefreshTokenException(token.getToken(), "Refresh token was expired. Please make a new signin request");
         }

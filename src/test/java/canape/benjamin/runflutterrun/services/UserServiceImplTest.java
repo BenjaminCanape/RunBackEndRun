@@ -14,6 +14,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -45,7 +47,7 @@ class UserServiceImplTest {
         user.setId((long) 1.00);
         user.setUsername("test_user");
         user.setPassword("password");
-        when(userRepository.findByUsername(anyString())).thenReturn(null);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         when(bCryptPasswordEncoder.encode(anyString())).thenReturn("encoded_password");
         when(userRepository.save(any(User.class))).thenReturn(user);
 
@@ -64,7 +66,7 @@ class UserServiceImplTest {
         // Mock
         User user = new User();
         user.setUsername("existing_user");
-        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
 
         // Call and verify
         assertThrows(RuntimeException.class, () -> userService.create(user));
@@ -76,14 +78,14 @@ class UserServiceImplTest {
         String username = "test_user";
         User user = new User();
         user.setUsername(username);
-        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
 
         // Call
-        User result = userService.findByUsername(username);
+        Optional<User> result = userService.findByUsername(username);
 
         // Verify
         assertNotNull(result);
-        assertEquals(user, result);
+        assertEquals(user, result.get());
         verify(userRepository).findByUsername(username);
     }
 
@@ -107,7 +109,7 @@ class UserServiceImplTest {
         dto.setCurrentPassword("password");
 
         when(jwtUtils.getUserNameFromJwtToken(anyString())).thenReturn(user.getUsername());
-        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
         when(bCryptPasswordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(userRepository.save(any(User.class))).thenReturn(user);
 
@@ -135,7 +137,7 @@ class UserServiceImplTest {
         dto.setCurrentPassword("password");
 
         when(jwtUtils.getUserNameFromJwtToken(anyString())).thenReturn(user.getUsername());
-        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
         when(bCryptPasswordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
 
@@ -151,7 +153,7 @@ class UserServiceImplTest {
         User user = new User();
         user.setUsername(username);
         when(jwtUtils.getUserNameFromJwtToken(anyString())).thenReturn(username);
-        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
 
         // Call
         userService.delete(token);

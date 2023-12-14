@@ -28,15 +28,13 @@ public class FriendRequestServiceImplTest {
     private FriendRequestRepository friendRequestRepository;
 
     @Mock
-    private JwtUtils jwtUtils;
-
-    @Mock
-    private UserRepository userRepository;
+    private IUserService userService;
 
     @BeforeEach
     public void init() {
         MockitoAnnotations.openMocks(this);
-        friendRequestService = new FriendRequestServiceImpl(friendRequestRepository, jwtUtils, userRepository);
+        friendRequestService =
+                new FriendRequestServiceImpl(friendRequestRepository, userService);
     }
 
     @Test
@@ -47,8 +45,7 @@ public class FriendRequestServiceImplTest {
         user.setId(1L);
         user.setUsername("user1");
 
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(user.getUsername());
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(user);
+        when(userService.getUserFromToken(token)).thenReturn(user);
         when(friendRequestRepository.findByReceiverAndStatus(user, FriendRequestStatus.PENDING)).thenReturn(
                 List.of(
                         createFriendRequest(1L, user, createUser(2L, "user2"), FriendRequestStatus.PENDING),
@@ -72,11 +69,10 @@ public class FriendRequestServiceImplTest {
         user.setId(1L);
         user.setUsername("user1");
 
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(user.getUsername());
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(user);
+        when(userService.getUserFromToken(token)).thenReturn(user);
 
         User otherUser = createUser(userId, "user2");
-        when(userRepository.findById(userId)).thenReturn(Optional.of(otherUser));
+        when(userService.getUserById(userId)).thenReturn(otherUser);
 
         FriendRequest friendRequest = createFriendRequest(1L, user, otherUser, FriendRequestStatus.PENDING);
         when(friendRequestRepository.findBySenderAndReceiver(user, otherUser)).thenReturn(Optional.of(friendRequest));
@@ -101,9 +97,8 @@ public class FriendRequestServiceImplTest {
         request.setReceiver(receiver);
         request.setSender(sender);
 
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(sender.getUsername());
-        when(userRepository.findByUsername(sender.getUsername())).thenReturn(sender);
-        when(userRepository.findUserById(receiverId)).thenReturn(Optional.of(receiver));
+        when(userService.getUserFromToken(token)).thenReturn(sender);
+        when(userService.getUserById(receiverId)).thenReturn(receiver);
         when(friendRequestRepository.findBySenderAndReceiver(sender, receiver)).thenReturn(Optional.empty());
         when(friendRequestRepository.save(any(FriendRequest.class))).thenReturn(request);
 
@@ -118,21 +113,6 @@ public class FriendRequestServiceImplTest {
     }
 
     @Test
-    public void testSendFriendRequestWhenReceiverNotFound() {
-        // Arrange
-        String token = "validToken";
-        Long receiverId = 2L;
-        User sender = createUser(1L, "sender");
-
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(sender.getUsername());
-        when(userRepository.findByUsername(sender.getUsername())).thenReturn(sender);
-        when(userRepository.findUserById(receiverId)).thenReturn(Optional.empty());
-
-        // Act and Assert
-        assertThrows(EntityNotFoundException.class, () -> friendRequestService.sendFriendRequest(token, receiverId));
-    }
-
-    @Test
     public void testSendFriendRequestWhenFriendRequestExists() {
         // Arrange
         String token = "validToken";
@@ -144,9 +124,8 @@ public class FriendRequestServiceImplTest {
         request.setReceiver(receiver);
         request.setSender(sender);
 
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(sender.getUsername());
-        when(userRepository.findByUsername(sender.getUsername())).thenReturn(sender);
-        when(userRepository.findUserById(receiverId)).thenReturn(Optional.of(receiver));
+        when(userService.getUserFromToken(token)).thenReturn(sender);
+        when(userService.getUserById(receiverId)).thenReturn(receiver);
         when(friendRequestRepository.findBySenderAndReceiver(sender, receiver)).thenReturn(
                 Optional.of(request)
         );

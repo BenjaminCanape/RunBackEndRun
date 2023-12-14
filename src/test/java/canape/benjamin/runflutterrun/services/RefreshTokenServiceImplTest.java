@@ -115,7 +115,7 @@ class RefreshTokenServiceImplTest {
         savedRefreshToken.setToken("new_token");
         user.setRefreshToken(existingRefreshToken);
 
-        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(savedRefreshToken);
 
         // Call
@@ -136,7 +136,7 @@ class RefreshTokenServiceImplTest {
         String username = "test_user";
         User user = new User();
         user.setUsername(username);
-        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
         when(refreshTokenRepository.deleteByUser(any(User.class))).thenReturn(1);
 
         // Call

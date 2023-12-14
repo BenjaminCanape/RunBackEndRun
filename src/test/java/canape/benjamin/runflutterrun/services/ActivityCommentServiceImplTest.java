@@ -21,10 +21,7 @@ import static org.mockito.Mockito.*;
 class ActivityCommentServiceImplTest {
 
     @Mock
-    private JwtUtils jwtUtils;
-
-    @Mock
-    private UserRepository userRepository;
+    private IUserService userService;
 
     @Mock
     private ActivityRepository activityRepository;
@@ -49,8 +46,7 @@ class ActivityCommentServiceImplTest {
 
         User mockUser = new User(); // Create a mock user
         Activity mockActivity = new Activity(); // Create a mock activity
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn("username");
-        when(userRepository.findByUsername("username")).thenReturn(mockUser);
+        when(userService.getUserFromToken(token)).thenReturn(mockUser);
         when(activityRepository.findById(activityId)).thenReturn(Optional.of(mockActivity));
         when(activityCommentRepository.save(any(ActivityComment.class))).thenAnswer(invocation -> {
             ActivityComment createdComment = invocation.getArgument(0);
@@ -82,8 +78,7 @@ class ActivityCommentServiceImplTest {
         ActivityComment existingComment = new ActivityComment(); // Create a mock existing comment
         existingComment.setUser(mockUser);
 
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn("username");
-        when(userRepository.findByUsername("username")).thenReturn(mockUser);
+        when(userService.getUserFromToken(token)).thenReturn(mockUser);
         when(activityCommentRepository.findById(commentId)).thenReturn(Optional.of(existingComment));
         when(activityCommentRepository.save(any(ActivityComment.class))).thenAnswer(invocation -> {
             ActivityComment updatedComment = invocation.getArgument(0);
@@ -111,8 +106,7 @@ class ActivityCommentServiceImplTest {
         ActivityComment existingComment = new ActivityComment(); // Create a mock existing comment
         existingComment.setUser(mockUser);
 
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn("username");
-        when(userRepository.findByUsername("username")).thenReturn(mockUser);
+        when(userService.getUserFromToken(token)).thenReturn(mockUser);
         when(activityCommentRepository.findById(commentId)).thenReturn(Optional.of(existingComment));
 
         // Act

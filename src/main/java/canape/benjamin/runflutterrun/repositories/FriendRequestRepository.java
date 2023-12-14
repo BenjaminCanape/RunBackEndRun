@@ -13,32 +13,31 @@ import java.util.Optional;
 @Repository
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Long> {
     /**
-     * Retrieves the friend request send to the receiver user which have a specific status
+     * Retrieves the friend requests sent to the receiver user with a specific status.
      *
      * @param receiver The receiver user.
-     * @param status The status of the friend request we search.
-     * @return The friend request send to the receiver user which have a specific status.
+     * @param status   The status of the friend requests to search.
+     * @return The friend requests sent to the receiver user with a specific status.
      */
     List<FriendRequest> findByReceiverAndStatus(User receiver, FriendRequestStatus status);
 
     /**
-     * Retrieves the user friend request with a specific status
+     * Retrieves the friend requests involving the user with a specific status.
      *
-     * @param user The user.
-     * @param status The status of the friend request we search.
-     * @return The friend request send to the receiver user which have a specific status.
+     * @param user   The user.
+     * @param status The status of the friend requests to search.
+     * @return The friend requests involving the user with a specific status.
      */
     @Query("select r from FriendRequest r where (r.sender = :user or r.receiver = :user) and r.status = :status")
-    List<FriendRequest> findByUserAndStatus(User user, FriendRequestStatus status);
+    List<FriendRequest> findByUserAndStatus(@Param("user") User user, @Param("status") FriendRequestStatus status);
 
     /**
-     * Retrieves the friend request send to the receiver user by the sender user
+     * Retrieves the friend request sent between the current user and another user.
      *
-     * @param user The current user.
-     * @param otherUser The other user.
-     * @return the friend request send to the receiver user by the sender user.
+     * @param user       The current user.
+     * @param otherUser  The other user.
+     * @return The friend request sent between the current user and another user.
      */
     @Query("select r from FriendRequest r where (r.sender = :user and r.receiver = :otherUser) or (r.receiver = :user and r.sender = :otherUser)")
     Optional<FriendRequest> findBySenderAndReceiver(@Param("user") User user, @Param("otherUser") User otherUser);
-
 }

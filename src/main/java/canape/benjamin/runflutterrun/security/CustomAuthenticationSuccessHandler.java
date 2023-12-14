@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.webjars.NotFoundException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -48,7 +49,8 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUsername());
 
-        User user = userService.findByUsername(userDetails.getUsername());
+        User user = userService.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new NotFoundException("User not found"));
         UserSearchDto userDto = modelMapper.map(user, UserSearchDto.class);
 
         Map<String, Object> responseBody = new HashMap<>();

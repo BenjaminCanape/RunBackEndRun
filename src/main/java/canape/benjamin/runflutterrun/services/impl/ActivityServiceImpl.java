@@ -6,9 +6,9 @@ import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repositories.ActivityLikeRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityRepository;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
-import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
 import canape.benjamin.runflutterrun.services.IActivityService;
 import canape.benjamin.runflutterrun.services.IFriendRequestService;
+import canape.benjamin.runflutterrun.services.IUserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,19 +22,15 @@ import java.util.Optional;
 @AllArgsConstructor
 public class ActivityServiceImpl implements IActivityService {
 
-    private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
     private final IFriendRequestService friendRequestService;
     private final ActivityLikeRepository activityLikeRepository;
+    private final IUserService userService;
 
-    /**
-     * Retrieve all activities in descending order of start datetime.
-     *
-     * @return Iterable of activities
-     */
+    @Override
     public Iterable<Activity> getAll() {
-        return activityRepository.findAllByOrderByStartDatetimeDesc();
+        return null;
     }
 
     /**
@@ -57,8 +53,7 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public Iterable<Activity> getAll(String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
         return activityRepository.findAllByOrderByStartDatetimeDescAndUser(user);
     }
 
@@ -70,8 +65,7 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public Iterable<Activity> getMineAndMyFriends(String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
         List<User> friends = friendRequestService.getFriends(token);
         friends.add(user);
         return activityRepository.findAllByOrderByStartDatetimeDescAndUsers(friends);
@@ -86,10 +80,8 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public Iterable<Activity> getByUser(String token, Long userId) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
         if (friendRequestService.areFriends(token, userId)) {
-            Optional<User> otherUser = userRepository.findUserById(userId);
+            Optional<User> otherUser = userRepository.findById(userId);
             if (otherUser.isPresent()) {
                 return activityRepository.findAllByOrderByStartDatetimeDescAndUser(otherUser.get());
             }
@@ -107,8 +99,7 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public Activity create(Activity activity, String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
         Activity activityWithMetrics = calculateMetrics(activity);
         activityWithMetrics.setUser(user);
         return activityRepository.save(activityWithMetrics);
@@ -124,9 +115,7 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public Activity getById(String token, long id) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
-
+        User user = userService.getUserFromToken(token);
         Activity activity = activityRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Activity with id: " + id + " is not available."));
 
@@ -148,8 +137,7 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public Activity update(String token, Activity activity) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
 
         Activity existingActivity = activityRepository.findById(activity.getId()).orElseThrow(
                 () -> new EntityNotFoundException("Activity with id: " + activity.getId() + " is not available."));
@@ -177,8 +165,7 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public void delete(String token, long id) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
 
         Activity activity = getById(token, id);
         if(activity.getUser().getId().equals(user.getId())) {
@@ -197,8 +184,7 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public void like(Long id, String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
 
         Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity not found"));
@@ -222,8 +208,7 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public void dislike(Long id, String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
 
         Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity not found"));
@@ -252,8 +237,7 @@ public class ActivityServiceImpl implements IActivityService {
      */
     @Override
     public boolean currentUserLiked(Long id, String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
 
         Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity not found"));
