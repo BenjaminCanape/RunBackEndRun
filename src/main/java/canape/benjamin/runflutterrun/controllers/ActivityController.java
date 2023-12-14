@@ -45,7 +45,7 @@ public class ActivityController {
     @GetMapping(value = "/all", produces = "application/json")
     public ResponseEntity<List<ActivityDto>> getAll(@RequestHeader(name = "Authorization") String token) {
         try {
-            Iterable<Activity> activities = activityCrudService.getAll();
+            Iterable<Activity> activities = activityCrudService.getAll(token);
             List<ActivityDto> activityDtos = getActivityDtoList(token, activities, false, true);
             return ResponseEntity.ok().body(activityDtos);
         } catch (Exception e) {
