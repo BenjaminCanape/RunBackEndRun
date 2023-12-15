@@ -5,24 +5,30 @@ import canape.benjamin.runflutterrun.model.ActivityComment;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repositories.ActivityCommentRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityRepository;
-import canape.benjamin.runflutterrun.repositories.UserRepository;
-import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
 import canape.benjamin.runflutterrun.services.IActivityCommentService;
+import canape.benjamin.runflutterrun.services.IUserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.webjars.NotFoundException;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 public class ActivityCommentServiceImpl implements IActivityCommentService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActivityCommentServiceImpl.class);
+    private static final String COMMENT_NOT_FOUND_MESSAGE = "Comment not found for ID: %d";
+    private static final String COMMENT_SECURITY_EXCEPTION_MESSAGE = "You don't have the right to %s this activity comment";
 
-    private final JwtUtils jwtUtils;
-    private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
     private final ActivityCommentRepository activityCommentRepository;
+    private  final IUserService userService;
 
     /**
      * Create a new comment on activity by current user
@@ -34,9 +40,9 @@ public class ActivityCommentServiceImpl implements IActivityCommentService {
      * @throws NotFoundException if the activity with the given ID is not found
      */
     @Override
+    @Transactional
     public ActivityComment create(String comment, Long activityId, String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
 
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new NotFoundException("Activity not found"));
@@ -45,7 +51,14 @@ public class ActivityCommentServiceImpl implements IActivityCommentService {
         activityComment.setActivity(activity);
         activityComment.setUser(user);
         activityComment.setCreatedAt(new Date());
+
+        if (StringUtils.isEmpty(comment)) {
+            throw new IllegalArgumentException("Comment cannot be null or empty");
+        }
+
         activityComment.setContent(comment);
+        LOGGER.info("User {} is creating a comment on activity with ID {}", user.getUsername(), activityId);
+
         return activityCommentRepository.save(activityComment);
     }
 
@@ -60,19 +73,23 @@ public class ActivityCommentServiceImpl implements IActivityCommentService {
      * @throws SecurityException if the activity comment does not belong to the authentificated user
      */
     @Override
+    @Transactional
     public ActivityComment update(Long id, String comment, String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
 
-        ActivityComment existingActivityComment = activityCommentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Comment with id: " + id + " is not available."));
-
-        if (existingActivityComment.getUser().getId().equals(user.getId())) {
-            existingActivityComment.setContent(comment);
-            return activityCommentRepository.save(existingActivityComment);
+        Optional<ActivityComment> existingActivityComment = activityCommentRepository.findById(id);
+        if (existingActivityComment.isPresent()) {
+            ActivityComment commentToUpdate = existingActivityComment.get();
+            if (commentToUpdate.getUser().getId().equals(user.getId())) {
+                commentToUpdate.setContent(comment);
+                LOGGER.info("User {} is updating a comment with ID {}", user.getUsername(), id);
+                return activityCommentRepository.save(commentToUpdate);
+            } else {
+                throw new SecurityException(String.format(COMMENT_SECURITY_EXCEPTION_MESSAGE, "update"));
+            }
+        } else {
+            throw new NotFoundException(String.format(COMMENT_NOT_FOUND_MESSAGE, id));
         }
-
-        throw new SecurityException("You don't have the right to update this activity comment");
     }
 
     /**
@@ -84,17 +101,21 @@ public class ActivityCommentServiceImpl implements IActivityCommentService {
      * @throws NotFoundException if the activity comment with the given ID is not found
      */
     @Override
+    @Transactional
     public void delete(String token, long id) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
 
-        ActivityComment activityComment = activityCommentRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Comment not found"));
-
-        if (activityComment.getUser().getId().equals(user.getId())) {
-            activityCommentRepository.deleteById(id);
+        Optional<ActivityComment> existingActivityComment = activityCommentRepository.findById(id);
+        if (existingActivityComment.isPresent()) {
+            ActivityComment commentToDelete = existingActivityComment.get();
+            if (commentToDelete.getUser().getId().equals(user.getId())) {
+                LOGGER.info("User {} is deleting a comment with ID {}", user.getUsername(), id);
+                activityCommentRepository.deleteById(id);
+            } else {
+                throw new SecurityException(String.format(COMMENT_SECURITY_EXCEPTION_MESSAGE, "delete"));
+            }
         } else {
-            throw new SecurityException("You don't have the right to delete this activity comment");
+            throw new NotFoundException(String.format(COMMENT_NOT_FOUND_MESSAGE, id));
         }
     }
 }

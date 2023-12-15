@@ -14,10 +14,11 @@ public interface RefreshTokenRepository extends CrudRepository<RefreshToken, Lon
     /**
      * Retrieves a refresh token by its token value.
      *
-     * @param token The token value.
+     * @param refreshToken The token value.
      * @return An Optional containing the refresh token if found, or an empty Optional if not found.
      */
-    Optional<RefreshToken> findByToken(String token);
+    Optional<RefreshToken> findByToken(String refreshToken);
+
 
     /**
      * Deletes all refresh tokens associated with a specific user.

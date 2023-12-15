@@ -10,5 +10,5 @@ public interface IPasswordResetService {
      * @param email the mail to get the user from and to send a mail to
      * @return string a message of success
      */
-    public String sendNewPasswordByMail(String email);
+     String sendNewPasswordByMail(String email);
 }

@@ -35,8 +35,9 @@ public interface ActivityRepository extends CrudRepository<Activity, Long> {
      * @param user The user for which to retrieve activities.
      * @return An iterable collection of activities.
      */
-    @Query("select a from Activity a left join fetch a.user u where u = :user order by a.startDatetime DESC")
+    @Query("select a from Activity a where a.user = :user order by a.startDatetime DESC")
     Iterable<Activity> findAllByOrderByStartDatetimeDescAndUser(@Param("user") User user);
+
 
     /**
      * Retrieves all activities associated with specific users, sorted by start datetime in descending order.
@@ -44,6 +45,6 @@ public interface ActivityRepository extends CrudRepository<Activity, Long> {
      * @param users The users for which to retrieve activities.
      * @return An iterable collection of activities.
      */
-    @Query("select a from Activity a left join fetch a.user u where u in :users order by a.startDatetime DESC")
+    @Query("select a from Activity a where a.user in :users order by a.startDatetime DESC")
     Iterable<Activity> findAllByOrderByStartDatetimeDescAndUsers(@Param("users") List<User> users);
 }

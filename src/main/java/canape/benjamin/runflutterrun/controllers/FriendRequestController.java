@@ -6,12 +6,13 @@ import canape.benjamin.runflutterrun.model.FriendRequest;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.services.IFriendRequestService;
 import canape.benjamin.runflutterrun.services.IUserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,11 +54,16 @@ public class FriendRequestController {
      * @return A list of UserSearchDto representing users who have sent friend requests.
      */
     @GetMapping("/pending")
-    public List<UserSearchDto> getPendingFriendRequests(@RequestHeader(name = "Authorization") String token) {
-        return friendRequestService.getPendingFriendRequests(token)
-                .stream()
-                .map(request -> convertToUserDTO(request.getSender()))
-                .collect(Collectors.toList());
+    public ResponseEntity<List<UserSearchDto>> getPendingFriendRequests(@RequestHeader(name = "Authorization") String token) {
+        try {
+            List<UserSearchDto> pendingRequests = friendRequestService.getPendingFriendRequests(token)
+                    .stream()
+                    .map(request -> convertToUserDTO(request.getSender()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(pendingRequests);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     /**
@@ -68,9 +74,14 @@ public class FriendRequestController {
      * @return An optional FriendRequestDto representing the status of the friend request, if it exists.
      */
     @GetMapping("/getStatus")
-    public Optional<FriendRequestDto> getStatus(@RequestHeader(name = "Authorization") String token, @RequestParam Long userId) {
-        Optional<FriendRequest> request = friendRequestService.getFriendRequestForUser(token, userId);
-        return request.map(this::convertToDTO);
+    public ResponseEntity<FriendRequestDto> getStatus(@RequestHeader(name = "Authorization") String token, @RequestParam Long userId) {
+        try {
+            Optional<FriendRequest> request = friendRequestService.getFriendRequestForUser(token, userId);
+            return request.map(r -> ResponseEntity.ok(convertToDTO(r)))
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     /**
@@ -81,11 +92,12 @@ public class FriendRequestController {
      * @return The ID of the created friend request.
      */
     @PostMapping("/sendRequest")
-    public Long sendFriendRequest(@RequestHeader(name = "Authorization") String token, @RequestParam Long receiverId) {
+    public ResponseEntity<Long> sendFriendRequest(@RequestHeader(name = "Authorization") String token, @RequestParam Long receiverId) {
         try {
-            return friendRequestService.sendFriendRequest(token, receiverId).getId();
+            Long requestId = friendRequestService.sendFriendRequest(token, receiverId).getId();
+            return ResponseEntity.status(HttpStatus.CREATED).body(requestId);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to send the friend request", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -93,15 +105,18 @@ public class FriendRequestController {
      * Accepts a friend request.
      *
      * @param token    The authorization token for the user accepting the request.
-     * @param requestId The ID of the friend request to be accepted.
+     * @param userId The ID of the friend request to be accepted.
      * @return A FriendRequestDto representing the accepted friend request.
      */
     @PostMapping("/acceptRequest")
-    public FriendRequestDto acceptFriendRequest(@RequestHeader(name = "Authorization") String token, @RequestParam Long userId) {
+    public ResponseEntity<FriendRequestDto> acceptFriendRequest(@RequestHeader(name = "Authorization") String token, @RequestParam Long userId) {
         try {
-            return convertToDTO(friendRequestService.acceptFriendRequest(token, userId));
+            FriendRequestDto acceptedRequest = convertToDTO(friendRequestService.acceptFriendRequest(token, userId));
+            return ResponseEntity.ok(acceptedRequest);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to accept the friend request", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -109,15 +124,18 @@ public class FriendRequestController {
      * Rejects a friend request.
      *
      * @param token    The authorization token for the user rejecting the request.
-     * @param requestId The ID of the friend request to be rejected.
+     * @param userId The ID of the friend request to be rejected.
      * @return A FriendRequestDto representing the rejected friend request.
      */
     @PostMapping("/rejectRequest")
-    public FriendRequestDto rejectFriendRequest(@RequestHeader(name = "Authorization") String token, @RequestParam Long userId) {
+    public ResponseEntity<FriendRequestDto> rejectFriendRequest(@RequestHeader(name = "Authorization") String token, @RequestParam Long userId) {
         try {
-            return convertToDTO(friendRequestService.rejectFriendRequest(token, userId));
+            FriendRequestDto rejectedRequest = convertToDTO(friendRequestService.rejectFriendRequest(token, userId));
+            return ResponseEntity.ok(rejectedRequest);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to reject the friend request", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -125,15 +143,18 @@ public class FriendRequestController {
      * Cancels a friend request sent by the authenticated user.
      *
      * @param token    The authorization token for the user canceling the request.
-     * @param requestId The ID of the friend request to be canceled.
+     * @param userId The ID of the friend request to be canceled.
      * @return A FriendRequestDto representing the canceled friend request.
      */
     @PostMapping("/cancelRequest")
-    public FriendRequestDto cancelFriendRequest(@RequestHeader(name = "Authorization") String token, @RequestParam Long userId) {
+    public ResponseEntity<FriendRequestDto> cancelFriendRequest(@RequestHeader(name = "Authorization") String token, @RequestParam Long userId) {
         try {
-            return convertToDTO(friendRequestService.cancelFriendRequest(token, userId));
+            FriendRequestDto canceledRequest = convertToDTO(friendRequestService.cancelFriendRequest(token, userId));
+            return ResponseEntity.ok(canceledRequest);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to cancel the friend request", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 

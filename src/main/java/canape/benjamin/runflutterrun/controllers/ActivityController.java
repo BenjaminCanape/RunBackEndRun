@@ -6,13 +6,13 @@ import canape.benjamin.runflutterrun.model.ActivityComment;
 import canape.benjamin.runflutterrun.model.Location;
 import canape.benjamin.runflutterrun.services.IActivityCommentService;
 import canape.benjamin.runflutterrun.services.IActivityService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.webjars.NotFoundException;
 
 import java.util.ArrayList;
@@ -43,14 +43,13 @@ public class ActivityController {
      * @return A list of ActivityDto objects.
      */
     @GetMapping(value = "/all", produces = "application/json")
-    public List<ActivityDto> getAll(@RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<List<ActivityDto>> getAll(@RequestHeader(name = "Authorization") String token) {
         try {
-            return StreamSupport
-                    .stream(activityCrudService.getAll(token).spliterator(), false)
-                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(token, activity))
-                    .collect(Collectors.toList());
+            Iterable<Activity> activities = activityCrudService.getAll(token);
+            List<ActivityDto> activityDtos = getActivityDtoList(token, activities, false, true);
+            return ResponseEntity.ok().body(activityDtos);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activities", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -62,14 +61,13 @@ public class ActivityController {
      * @return A list of ActivityDto objects.
      */
     @GetMapping(value = "/friends", produces = "application/json")
-    public List<ActivityDto> getMineAndMyFriends(@RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<List<ActivityDto>> getMineAndMyFriends(@RequestHeader(name = "Authorization") String token) {
         try {
-            return StreamSupport
-                    .stream(activityCrudService.getMineAndMyFriends(token).spliterator(), false)
-                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(token, activity))
-                    .collect(Collectors.toList());
+            Iterable<Activity> activities = activityCrudService.getMineAndMyFriends(token);
+            List<ActivityDto> activityDtos = getActivityDtoList(token, activities, false, true);
+            return ResponseEntity.ok().body(activityDtos);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activities", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -81,14 +79,13 @@ public class ActivityController {
      * @return A list of ActivityDto objects.
      */
     @GetMapping(value = "/user/{id}", produces = "application/json")
-    public List<ActivityDto> getByUser(@PathVariable long id, @RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<List<ActivityDto>> getByUser(@PathVariable long id, @RequestHeader(name = "Authorization") String token) {
         try {
-            return StreamSupport
-                    .stream(activityCrudService.getByUser(token, id).spliterator(), false)
-                    .collect(Collectors.toList()).stream().map(activity -> convertToDTO(token, activity))
-                    .collect(Collectors.toList());
+            Iterable<Activity> activities = activityCrudService.getByUser(token, id);
+            List<ActivityDto> activityDtos = getActivityDtoList(token, activities, false, true);
+            return ResponseEntity.ok().body(activityDtos);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activities", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -100,11 +97,11 @@ public class ActivityController {
      * @return The created ActivityDto object.
      */
     @PostMapping(value = "/", consumes = "application/json")
-    public ActivityDto create(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<ActivityDto> create(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(token, activityCrudService.create(convertToEntity(activity), token));
+            return ResponseEntity.ok().body(convertToDTO(token, activityCrudService.create(convertToEntity(activity), token)));
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create activity", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -116,11 +113,13 @@ public class ActivityController {
      * @return The retrieved ActivityDto object.
      */
     @GetMapping(value = "/{id}", produces = "application/json")
-    public ActivityDto retrieve(@PathVariable long id, @RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<ActivityDto> retrieve(@PathVariable long id, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(token, activityCrudService.getById(token, id), true, false);
+            return ResponseEntity.ok().body(convertToDTO(token, activityCrudService.getById(token, id), true, false));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get activity", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -132,11 +131,13 @@ public class ActivityController {
      * @return The updated ActivityDto object.
      */
     @PutMapping(value = "/", consumes = "application/json")
-    public ActivityDto update(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<ActivityDto> update(@RequestBody ActivityDto activity, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertToDTO(token, activityCrudService.update(token, convertToEntity(activity)), false, false);
+            return ResponseEntity.ok().body(convertToDTO(token, activityCrudService.update(token, convertToEntity(activity)), false, false));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update activity", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -153,7 +154,7 @@ public class ActivityController {
             activityCrudService.delete(token, id);
             return ResponseEntity.ok("Activity successfully deleted");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Activity deletion failed");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -172,7 +173,7 @@ public class ActivityController {
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Activity not found");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Activity liked failed");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -191,7 +192,7 @@ public class ActivityController {
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Activity not found");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Activity disliked failed");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -204,11 +205,13 @@ public class ActivityController {
      * @return The created ActivityCommentDto object.
      */
     @PostMapping(value = "/comment")
-    public ActivityCommentDto createComment(@RequestParam("comment") String comment, @RequestParam("activityId") Long activityId, @RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<ActivityCommentDto> createComment(@RequestParam("comment") String comment, @RequestParam("activityId") Long activityId, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertCommentToDTO(activityCommentService.create(comment, activityId, token));
+            return ResponseEntity.ok().body(convertCommentToDTO(activityCommentService.create(comment, activityId, token)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create comment", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -221,11 +224,13 @@ public class ActivityController {
      * @return The updated ActivityCommentDto object.
      */
     @PutMapping(value = "/comment")
-    public ActivityCommentDto updateComment(@RequestParam("id") Long id, @RequestParam("comment") String comment, @RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<ActivityCommentDto> updateComment(@RequestParam("id") Long id, @RequestParam("comment") String comment, @RequestHeader(name = "Authorization") String token) {
         try {
-            return convertCommentToDTO(activityCommentService.update(id, comment, token));
+            return ResponseEntity.ok().body(convertCommentToDTO(activityCommentService.update(id, comment, token)));
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update comment", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -241,20 +246,23 @@ public class ActivityController {
         try {
             activityCommentService.delete(token, id);
             return ResponseEntity.ok("Comment successfully deleted");
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Comment deletion failed");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     private Activity convertToEntity(ActivityDto activityDto) {
         Activity activity = modelMapper.map(activityDto, Activity.class);
 
-        List<Location> locations = new ArrayList<>();
-        activityDto.getLocations().forEach((location) -> {
-            Location loc = modelMapper.map(location, Location.class);
-            loc.setActivity(activity);
-            locations.add(loc);
-        });
+        List<Location> locations = activityDto.getLocations().stream()
+                .map(locationDto -> {
+                    Location loc = modelMapper.map(locationDto, Location.class);
+                    loc.setActivity(activity);
+                    return loc;
+                })
+                .collect(Collectors.toList());
 
         activity.setLocations(locations);
         activity.setComments(new ArrayList<>());
@@ -267,26 +275,25 @@ public class ActivityController {
 
     private ActivityCommentDto convertCommentToDTO(ActivityComment activityComment) {
         UserSearchDto userDto = modelMapper.map(activityComment.getUser(), UserSearchDto.class);
-        ActivityCommentDto commentDto =  modelMapper.map(activityComment, ActivityCommentDto.class);
+        ActivityCommentDto commentDto = modelMapper.map(activityComment, ActivityCommentDto.class);
         commentDto.setUser(userDto);
 
         return commentDto;
     }
 
-
     private ActivityDto convertToDTO(String token, Activity activity, Boolean fetchLocations, Boolean fetchComments) {
         List<LocationDto> locations = new ArrayList<>();
         if (fetchLocations) {
-            activity.getLocations().forEach((location) ->
-                    locations.add(modelMapper.map(location, LocationDto.class))
-            );
+            locations = activity.getLocations().stream()
+                    .map(location -> modelMapper.map(location, LocationDto.class))
+                    .collect(Collectors.toList());
         }
 
         List<ActivityCommentDto> comments = new ArrayList<>();
         if (fetchComments) {
-            activity.getComments().forEach((comment) ->
-                    comments.add(convertCommentToDTO(comment))
-            );
+            comments = activity.getComments().stream()
+                    .map(this::convertCommentToDTO)
+                    .collect(Collectors.toList());
         }
 
         ActivityDto activityDto = modelMapper.map(activity, ActivityDto.class);
@@ -302,5 +309,11 @@ public class ActivityController {
         activityDto.setComments(Optional.of(comments));
 
         return activityDto;
+    }
+
+    private List<ActivityDto> getActivityDtoList(String token, Iterable<Activity> activities, boolean fetchLocations, boolean fetchComments) {
+        return StreamSupport.stream(activities.spliterator(), false)
+                .map(activity -> convertToDTO(token, activity, fetchLocations, fetchComments))
+                .collect(Collectors.toList());
     }
 }

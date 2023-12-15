@@ -4,9 +4,8 @@ import canape.benjamin.runflutterrun.model.FriendRequest;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.model.enums.FriendRequestStatus;
 import canape.benjamin.runflutterrun.repositories.FriendRequestRepository;
-import canape.benjamin.runflutterrun.repositories.UserRepository;
-import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
 import canape.benjamin.runflutterrun.services.IFriendRequestService;
+import canape.benjamin.runflutterrun.services.IUserService;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -25,8 +24,7 @@ import java.util.Optional;
 public class FriendRequestServiceImpl implements IFriendRequestService {
 
     private final FriendRequestRepository friendRequestRepository;
-    private final JwtUtils jwtUtils;
-    private final UserRepository userRepository;
+    private final IUserService userService;
 
     /**
      * Retrieves a list of pending friend requests for the user associated with the given token.
@@ -35,8 +33,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      * @return A list of FriendRequest objects representing pending friend requests.
      */
     public List<FriendRequest> getPendingFriendRequests(String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
         return friendRequestRepository.findByReceiverAndStatus(user, FriendRequestStatus.PENDING);
     }
 
@@ -49,13 +46,9 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      * @throws EntityNotFoundException if the specified user with userId does not exist.
      */
     public Optional<FriendRequest> getFriendRequestForUser(String token, Long userId) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
-        Optional<User> otherUser = userRepository.findById(userId);
-        if (otherUser.isEmpty()) {
-            throw new EntityNotFoundException("No user with id: " + userId.toString());
-        }
-        return friendRequestRepository.findBySenderAndReceiver(user, otherUser.get());
+        User user = userService.getUserFromToken(token);
+        User otherUser = userService.getUserById(userId);
+        return friendRequestRepository.findBySenderAndReceiver(user, otherUser);
     }
 
     /**
@@ -68,21 +61,12 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      * @throws EntityExistsException      if a friend request already exists between the sender and receiver.
      */
     public FriendRequest sendFriendRequest(String token, Long receiverId) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
-        User receiver = userRepository.findUserById(receiverId)
-                .orElseThrow(() -> new EntityNotFoundException("No user with id: " + receiverId));
+        User sender = userService.getUserFromToken(token);
+        User receiver = userService.getUserById(receiverId);
 
-        FriendRequest existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, receiver)
-                .orElseGet(() -> {
-                    FriendRequest friendRequest = new FriendRequest();
-                    friendRequest.setSender(user);
-                    friendRequest.setReceiver(receiver);
-                    friendRequest.setStatus(FriendRequestStatus.PENDING);
-                    return friendRequest;
-                });
-        existingFriendRequest.setSender(user);
-        existingFriendRequest.setReceiver(receiver);
+        FriendRequest existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(sender, receiver)
+                .orElseGet(() -> createFriendRequest(sender, receiver));
+
         existingFriendRequest.setStatus(FriendRequestStatus.PENDING);
         return friendRequestRepository.save(existingFriendRequest);
     }
@@ -97,7 +81,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      * @throws SecurityException          if the authenticated user is not the receiver of the friend request.
      */
     public FriendRequest acceptFriendRequest(String token, Long userId) {
-        return this.updateFriendRequest(token, userId, FriendRequestStatus.ACCEPTED);
+        return updateFriendRequestStatus(token, userId, FriendRequestStatus.ACCEPTED);
     }
 
     /**
@@ -110,7 +94,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      * @throws SecurityException          if the authenticated user is not the receiver of the friend request.
      */
     public FriendRequest rejectFriendRequest(String token, Long userId) {
-        return this.updateFriendRequest(token, userId, FriendRequestStatus.REJECTED);
+        return updateFriendRequestStatus(token, userId, FriendRequestStatus.REJECTED);
     }
 
     /**
@@ -123,7 +107,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      * @throws SecurityException          if the authenticated user is not the sender of the friend request.
      */
     public FriendRequest cancelFriendRequest(String token, Long userId) {
-        return this.updateFriendRequest(token, userId, FriendRequestStatus.CANCELED);
+        return updateFriendRequestStatus(token, userId, FriendRequestStatus.CANCELED);
     }
 
 
@@ -135,19 +119,12 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      * @return true if they are friends, else false
      */
     public boolean areFriends(String token, Long userId) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
-        Optional<User> receiver = userRepository.findUserById(userId);
+        User user = userService.getUserFromToken(token);
+        User receiver = userService.getUserById(userId);
 
-        if (receiver.isPresent()) {
-            Optional<FriendRequest> existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, receiver.get());
+        Optional<FriendRequest> existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, receiver);
 
-            if (existingFriendRequest.isPresent()) {
-                return existingFriendRequest.get().getStatus() == FriendRequestStatus.ACCEPTED;
-            }
-        }
-
-        return false;
+        return existingFriendRequest.isPresent() && existingFriendRequest.get().getStatus() == FriendRequestStatus.ACCEPTED;
     }
 
     /**
@@ -157,21 +134,33 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      * @return list of user
      */
     public List<User> getFriends(String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = userService.getUserFromToken(token);
 
         List<FriendRequest> friendRequests = friendRequestRepository.findByUserAndStatus(user, FriendRequestStatus.ACCEPTED);
 
         List<User> friends = new ArrayList<>();
         for (FriendRequest item : friendRequests) {
-            if (item.getSender() == user) {
+            if (item.getSender().equals(user)) {
                 friends.add(item.getReceiver());
-            }
-            else {
+            } else {
                 friends.add(item.getSender());
             }
         }
         return friends;
+    }
+
+    /**
+     * Updates the status of a specific friend request with the given requestId.
+     *
+     * @param sender the user who want to ask a friend request
+     * @param receiver the user who will receive the friend request
+     * @return the friend requested created
+     */
+    private FriendRequest createFriendRequest(User sender, User receiver) {
+        FriendRequest friendRequest = new FriendRequest();
+        friendRequest.setSender(sender);
+        friendRequest.setReceiver(receiver);
+        return friendRequest;
     }
 
     /**
@@ -184,15 +173,11 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
      * @throws EntityNotFoundException    if the specified friend request with requestId does not exist.
      * @throws SecurityException          if the authenticated user is not authorized to update the friend request.
      */
-    private FriendRequest updateFriendRequest(String token, Long userId, FriendRequestStatus status) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
-        Optional<User> otherUser = userRepository.findById(userId);
-        if (otherUser.isEmpty()) {
-            throw new EntityNotFoundException("No user with id: " + userId);
-        }
+    private FriendRequest updateFriendRequestStatus(String token, Long userId, FriendRequestStatus status) {
+        User user = userService.getUserFromToken(token);
+        User otherUser = userService.getUserById(userId);
 
-        Optional<FriendRequest> existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, otherUser.get());
+        Optional<FriendRequest> existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, otherUser);
 
         if (existingFriendRequest.isEmpty()) {
             throw new EntityNotFoundException("Friend request doesn't exist.");
@@ -200,7 +185,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
 
         FriendRequest friendRequest = existingFriendRequest.get();
 
-        if (!friendRequest.getReceiver().getId().equals(user.getId()) && !friendRequest.getSender().getId().equals(user.getId())) {
+        if (!friendRequest.getReceiver().equals(user) && !friendRequest.getSender().equals(user)) {
             throw new SecurityException("Friend request doesn't concern you.");
         }
 

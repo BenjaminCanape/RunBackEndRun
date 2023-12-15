@@ -7,19 +7,15 @@ import canape.benjamin.runflutterrun.services.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
+import org.webjars.NotFoundException;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -49,11 +45,12 @@ public class UserController {
      * @return The ID of the created user.
      */
     @PostMapping(value = "/user/register", consumes = "application/json")
-    public Long create(@RequestBody UserDto userDto) {
+    public ResponseEntity<Long> create(@RequestBody UserDto userDto) {
         try {
-            return userCrudService.create(convertToEntity(userDto));
+            Long userId = userCrudService.create(convertToEntity(userDto));
+            return ResponseEntity.status(HttpStatus.CREATED).body(userId);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create user", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -64,14 +61,14 @@ public class UserController {
      * @return A ResponseEntity containing the new access token.
      */
     @PostMapping("/user/refreshToken")
-    public ResponseEntity<RefreshTokenDto> refreshtoken(@RequestBody RefreshTokenDto refreshTokenDto) {
+    public ResponseEntity<RefreshTokenDto> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto) {
         try {
             String newToken = refreshTokenService.generateNewAccessTokenFromRequestToken(refreshTokenDto.getToken());
             RefreshTokenDto response = new RefreshTokenDto();
             response.setToken(newToken);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed generate new access token", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -83,11 +80,12 @@ public class UserController {
      * @return The ID of the user whose password was edited.
      */
     @PutMapping(value = "/private/user/editPassword", consumes = "application/json")
-    public Long editPassword(@RequestHeader(name = "Authorization") String token, @RequestBody EditPasswordDto editPasswordDto) {
+    public ResponseEntity<Long> editPassword(@RequestHeader(name = "Authorization") String token, @RequestBody EditPasswordDto editPasswordDto) {
         try {
-            return userCrudService.editPassword(token, editPasswordDto);
+            Long userId = userCrudService.editPassword(token, editPasswordDto);
+            return ResponseEntity.ok(userId);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed edit password", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -99,11 +97,12 @@ public class UserController {
      * @return The ID of the user whose profile was edited.
      */
     @PutMapping(value = "/private/user/editProfile", consumes = "application/json")
-    public Long editProfile(@RequestHeader(name = "Authorization") String token, @RequestBody EditProfileDto editProfileDto) {
+    public ResponseEntity<Long> editProfile(@RequestHeader(name = "Authorization") String token, @RequestBody EditProfileDto editProfileDto) {
         try {
-            return userCrudService.editProfile(token, editProfileDto);
+            Long userId = userCrudService.editProfile(token, editProfileDto);
+            return ResponseEntity.ok(userId);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed edit profile", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -130,13 +129,14 @@ public class UserController {
      * @return A list of ActivityDto objects.
      */
     @GetMapping(value = "/private/user/search", produces = "application/json")
-    public List<UserSearchDto> search(@RequestHeader(name = "Authorization") String token, @RequestParam String searchText) {
+    public ResponseEntity<List<UserSearchDto>> search(@RequestHeader(name = "Authorization") String token, @RequestParam String searchText) {
         try {
-            return userCrudService.search(token, searchText).stream()
-                    .toList().stream().map(this::convertToSearchDTO)
+            List<UserSearchDto> searchResults = userCrudService.search(token, searchText).stream()
+                    .map(this::convertToSearchDTO)
                     .collect(Collectors.toList());
+            return ResponseEntity.ok(searchResults);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to get users", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -151,8 +151,10 @@ public class UserController {
         try {
             userCrudService.uploadProfilePicture(token, file);
             return ResponseEntity.ok("Successfully uploaded file");
+        }  catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to upload the profile picture");
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload the profile picture", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         }
     }
 
@@ -162,24 +164,30 @@ public class UserController {
      * @param id The id of the user
      */
     @GetMapping("/user/picture/download/{id}")
-    public ResponseEntity<byte[]> downloadProfilePicture(@PathVariable String id) throws IOException {
-        Map<String, Object> picture = userCrudService.getProfilePicture(id);
-        MediaType mediaType = MediaType.parseMediaType((String) picture.get("contentType"));
-        return ResponseEntity.ok()
-                .contentType(mediaType)
-                .body((byte[]) picture.get("imageData"));
-
+    public ResponseEntity<byte[]> downloadProfilePicture(@PathVariable String id) {
+        try {
+            Map<String, Object> picture = userCrudService.getProfilePicture(id);
+            MediaType mediaType = MediaType.parseMediaType((String) picture.get("contentType"));
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .body((byte[]) picture.get("imageData"));
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     private User convertToEntity(UserDto userDto) {
         return modelMapper.map(userDto, User.class);
     }
 
-    private UserDto convertToDTO(User user) {
-        return modelMapper.map(user, UserDto.class);
-    }
-
     private UserSearchDto convertToSearchDTO(User user) {
         return modelMapper.map(user, UserSearchDto.class);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     }
 }

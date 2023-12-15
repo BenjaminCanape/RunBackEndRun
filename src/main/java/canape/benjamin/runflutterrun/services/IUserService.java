@@ -3,16 +3,37 @@ package canape.benjamin.runflutterrun.services;
 import canape.benjamin.runflutterrun.dto.EditPasswordDto;
 import canape.benjamin.runflutterrun.dto.EditProfileDto;
 import canape.benjamin.runflutterrun.model.User;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.webjars.NotFoundException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public interface IUserService {
+
+    /**
+     * Find a user by its token
+     *
+     * @param token the token
+     * @return the user found
+     * @throws NotFoundException No user found
+     */
+     User getUserFromToken(String token);
+
+    /**
+     * Find a user by its id
+     *
+     * @param userId the user id
+     * @return the user found
+     * @throws EntityNotFoundException No user found
+     */
+    public User getUserById(Long userId);
+
     /**
      * Create a new user.
      *
@@ -35,7 +56,7 @@ public interface IUserService {
      * @param username the username
      * @return the found user, or null if not found
      */
-    User findByUsername(String username);
+    Optional<User> findByUsername(String username);
 
     /**
      * Edit the password of a user.

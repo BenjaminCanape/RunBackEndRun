@@ -30,7 +30,7 @@ class ActivityServiceImplTest {
     private ActivityServiceImpl activityService;
 
     @Mock
-    private JwtUtils jwtUtils;
+    private IUserService userService;
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -45,25 +45,7 @@ class ActivityServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        activityService = new ActivityServiceImpl(jwtUtils, userRepository, activityRepository, friendRequestService, activityLikeRepository);
-    }
-
-    @Test
-    void getAll_ReturnsAllActivities() {
-        // Mock
-        Activity activity1 = createSampleActivity();
-        Activity activity2 = createSampleActivity();
-        when(activityRepository.findAllByOrderByStartDatetimeDesc()).thenReturn(List.of(activity1, activity2));
-
-        // Call
-        Iterable<Activity> activities = activityService.getAll();
-
-        // Verify
-        assertNotNull(activities);
-        List<Activity> activityList = StreamSupport.stream(activities.spliterator(), false).collect(Collectors.toList());
-        assertEquals(2, activityList.size());
-        assertTrue(activityList.contains(activity1));
-        assertTrue(activityList.contains(activity2));
+        activityService = new ActivityServiceImpl( userRepository, activityRepository, friendRequestService, activityLikeRepository, userService);
     }
 
     @Test
@@ -89,8 +71,7 @@ class ActivityServiceImplTest {
         User user = new User();
         Activity activity1 = createSampleActivity();
         Activity activity2 = createSampleActivity();
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
-        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(userService.getUserFromToken(token)).thenReturn(user);
         when(activityRepository.findAllByOrderByStartDatetimeDescAndUser(user)).thenReturn(List.of(activity1, activity2));
 
         // Call
@@ -112,8 +93,7 @@ class ActivityServiceImplTest {
         User user = new User();
         Activity activity = createSampleActivity();
 
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
-        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(userService.getUserFromToken(token)).thenReturn(user);
         when(activityRepository.save(activity)).thenReturn(activity);
 
         // Call
@@ -136,8 +116,7 @@ class ActivityServiceImplTest {
         user.setId(1L);
         Activity activity = createSampleActivity();
         activity.setUser(user);
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
-        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(userService.getUserFromToken(token)).thenReturn(user);
         when(activityRepository.findById(id)).thenReturn(Optional.of(activity));
 
         // Call
@@ -156,8 +135,7 @@ class ActivityServiceImplTest {
         String username = "mock_username";
         User user = new User();
         user.setId(1L);
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
-        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(userService.getUserFromToken(token)).thenReturn(user);
         when(activityRepository.findById(id)).thenReturn(Optional.empty());
 
         // Call and verify
@@ -175,8 +153,7 @@ class ActivityServiceImplTest {
         user.setId(1L);
         existingActivity.setUser(user);
         updatedActivity.setUser(user);
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
-        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(userService.getUserFromToken(token)).thenReturn(user);
         when(activityRepository.findById(existingActivity.getId())).thenReturn(Optional.of(existingActivity));
         when(activityRepository.save(existingActivity)).thenReturn(existingActivity);
 
@@ -203,8 +180,7 @@ class ActivityServiceImplTest {
         User user = new User();
         user.setId(1L);
         activity.setUser(user);
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
-        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(userService.getUserFromToken(token)).thenReturn(user);
         when(activityRepository.findById(activity.getId())).thenReturn(Optional.empty());
 
         // Call and verify
@@ -221,8 +197,7 @@ class ActivityServiceImplTest {
         user.setId(1L);
         Activity activity = new Activity();
         activity.setUser(user);
-        when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn(username);
-        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(userService.getUserFromToken(token)).thenReturn(user);
         when(activityRepository.findById(anyLong())).thenReturn(Optional.of(activity));
 
         // Call

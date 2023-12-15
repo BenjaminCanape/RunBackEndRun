@@ -12,7 +12,7 @@ import java.util.Collections;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private IUserService userService;
+    private final IUserService userService;
 
     public UserDetailsServiceImpl(IUserService userService) {
         this.userService = userService;
@@ -27,11 +27,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userService.findByUsername(username);
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), Collections.emptyList());
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                Collections.emptyList()
+        );
     }
 }

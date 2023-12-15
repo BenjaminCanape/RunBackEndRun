@@ -7,6 +7,7 @@ import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
 import canape.benjamin.runflutterrun.services.IUserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,15 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.webjars.NotFoundException;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.logging.Logger;
 
 @Service
 @AllArgsConstructor
@@ -35,6 +29,32 @@ public class UserServiceImpl implements IUserService {
     private Environment env;
 
     /**
+     * Find a user by its token
+     *
+     * @param token the token
+     * @return the user found
+     * @throws NotFoundException No user found
+     */
+    public User getUserFromToken(String token) {
+        String username = jwtUtils.getUserNameFromJwtToken(token);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+    }
+
+    /**
+     * Find a user by its id
+     *
+     * @param userId the user id
+     * @return the user found
+     * @throws EntityNotFoundException No user found
+     */
+    @Override
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("No user with id: " + userId));
+    }
+
+    /**
      * Create a new user.
      *
      * @param user the user to create
@@ -42,8 +62,10 @@ public class UserServiceImpl implements IUserService {
      * @throws RuntimeException if an account already exists with the provided email
      */
     @Override
+    @Transactional
     public Long create(User user) {
-        if (userRepository.findByUsername(user.getUsername()) != null) {
+        Optional<User> existingUser = userRepository.findByUsername(user.getUsername());
+        if (existingUser.isPresent()) {
             throw new RuntimeException("An account already exists for this email");
         }
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
@@ -57,10 +79,9 @@ public class UserServiceImpl implements IUserService {
      * @param searchText the text which will serve to find users
      * @return the user object
      */
-    @Override
     public List<User> search(String token, String searchText) {
         String username = jwtUtils.getUserNameFromJwtToken(token);
-        return userRepository.search(searchText, username);
+        return userRepository.findByUsernameOrFirstNameOrLastName(searchText, username);
     }
 
     /**
@@ -70,7 +91,7 @@ public class UserServiceImpl implements IUserService {
      * @return the user object
      */
     @Override
-    public User findByUsername(String username) {
+    public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
@@ -83,9 +104,9 @@ public class UserServiceImpl implements IUserService {
      * @throws EntityNotFoundException if the user is not found
      */
     @Override
+    @Transactional
     public Long editPassword(String token, EditPasswordDto dto) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = getUserFromToken(token);
 
         if (bCryptPasswordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
             user.setPassword(bCryptPasswordEncoder.encode(dto.getPassword()));
@@ -103,9 +124,9 @@ public class UserServiceImpl implements IUserService {
      * @return the ID of the updated user
      */
     @Override
+    @Transactional
     public Long editProfile(String token, EditProfileDto dto) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = getUserFromToken(token);
 
         user.setFirstname(dto.getFirstname());
         user.setLastname(dto.getLastname());
@@ -119,9 +140,10 @@ public class UserServiceImpl implements IUserService {
      * @param token the user's token
      */
     @Override
+    @Transactional
     public void delete(String token) {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = getUserFromToken(token);
+
         userRepository.deleteById(user.getId());
     }
 
@@ -132,9 +154,10 @@ public class UserServiceImpl implements IUserService {
      * @param file the file to upload as the profile picture
      */
     @Override
+    @Transactional
     public void uploadProfilePicture(String token, MultipartFile file) throws IOException {
-        String username = jwtUtils.getUserNameFromJwtToken(token);
-        User user = userRepository.findByUsername(username);
+        User user = getUserFromToken(token);
+
         byte[] imageData = file.getBytes();
         String type = file.getContentType();
         user.setProfilePicture(imageData);
@@ -149,7 +172,7 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public Map<String, Object> getProfilePicture(String id) {
-        Optional<User> user = userRepository.findUserById(Long.parseLong(id));
+        Optional<User> user = userRepository.findById(Long.parseLong(id));
         if (user.isEmpty()) {
             throw new NotFoundException("The user is not found");
         }
