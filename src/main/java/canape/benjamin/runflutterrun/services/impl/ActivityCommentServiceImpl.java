@@ -4,6 +4,7 @@ import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.ActivityComment;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repositories.ActivityCommentRepository;
+import canape.benjamin.runflutterrun.repositories.ActivityCrudRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityRepository;
 import canape.benjamin.runflutterrun.services.IActivityCommentService;
 import canape.benjamin.runflutterrun.services.IUserService;
@@ -26,7 +27,7 @@ public class ActivityCommentServiceImpl implements IActivityCommentService {
     private static final String COMMENT_NOT_FOUND_MESSAGE = "Comment not found for ID: %d";
     private static final String COMMENT_SECURITY_EXCEPTION_MESSAGE = "You don't have the right to %s this activity comment";
 
-    private final ActivityRepository activityRepository;
+    private final ActivityCrudRepository activityRepository;
     private final ActivityCommentRepository activityCommentRepository;
     private  final IUserService userService;
 

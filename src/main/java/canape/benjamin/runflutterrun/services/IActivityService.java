@@ -1,6 +1,8 @@
 package canape.benjamin.runflutterrun.services;
 
 import canape.benjamin.runflutterrun.model.Activity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -10,26 +12,29 @@ public interface IActivityService extends ICrudService<Activity> {
      * Get all activities associated with a user.
      *
      * @param token the user's token
+     * @param pageable the pagination information
      * @return an iterable collection of activities
      */
-    Iterable<Activity> getAll(String token);
+    Page<Activity> getAll(String token, Pageable pageable);
 
     /**
      * Get my activities and my friends.
      *
      * @param token the user's token
+     * @param pageable the pagination information
      * @return an iterable collection of activities
      */
-    Iterable<Activity> getMineAndMyFriends(String token);
+     Page<Activity> getMineAndMyFriends(String token, Pageable pageable);
 
     /**
      * Get all activities associated with a user.
      *
      * @param token the user's token
      * @param userId the user id
+     * @param pageable the pagination information
      * @return an iterable collection of activities
      */
-    Iterable<Activity> getByUser(String token, Long userId);
+    Page<Activity> getByUser(String token, Long userId, Pageable pageable);
 
     /**
      * Create an activity associated with a user.

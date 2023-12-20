@@ -1,8 +1,10 @@
 package canape.benjamin.runflutterrun.services;
 
+import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.FriendRequest;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.model.enums.FriendRequestStatus;
+import canape.benjamin.runflutterrun.repositories.FriendRequestCrudRepository;
 import canape.benjamin.runflutterrun.repositories.FriendRequestRepository;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
@@ -13,6 +15,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,36 +34,39 @@ public class FriendRequestServiceImplTest {
     private FriendRequestRepository friendRequestRepository;
 
     @Mock
+    private FriendRequestCrudRepository friendRequestCrudRepository;
+
+    @Mock
     private IUserService userService;
 
     @BeforeEach
     public void init() {
         MockitoAnnotations.openMocks(this);
         friendRequestService =
-                new FriendRequestServiceImpl(friendRequestRepository, userService);
+                new FriendRequestServiceImpl(friendRequestRepository, friendRequestCrudRepository, userService);
     }
 
     @Test
     public void testGetPendingFriendRequests() {
         // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
         String token = "validToken";
         User user = new User();
         user.setId(1L);
         user.setUsername("user1");
+        Page<FriendRequest> page = new PageImpl<>(List.of(
+                createFriendRequest(1L, user, createUser(2L, "user2"), FriendRequestStatus.PENDING),
+                createFriendRequest(2L, user, createUser(3L, "user3"), FriendRequestStatus.PENDING)
+        ));
 
         when(userService.getUserFromToken(token)).thenReturn(user);
-        when(friendRequestRepository.findByReceiverAndStatus(user, FriendRequestStatus.PENDING)).thenReturn(
-                List.of(
-                        createFriendRequest(1L, user, createUser(2L, "user2"), FriendRequestStatus.PENDING),
-                        createFriendRequest(2L, user, createUser(3L, "user3"), FriendRequestStatus.PENDING)
-                )
-        );
+        when(friendRequestRepository.findByReceiverAndStatus(user, FriendRequestStatus.PENDING, pageable)).thenReturn(page);
 
         // Act
-        List<FriendRequest> pendingRequests = friendRequestService.getPendingFriendRequests(token);
+        Page<FriendRequest> pendingRequests = friendRequestService.getPendingFriendRequests(token, pageable);
 
         // Assert
-        assertEquals(2, pendingRequests.size());
+        assertEquals(2, pendingRequests.getTotalElements());
     }
 
     @Test
@@ -75,7 +84,7 @@ public class FriendRequestServiceImplTest {
         when(userService.getUserById(userId)).thenReturn(otherUser);
 
         FriendRequest friendRequest = createFriendRequest(1L, user, otherUser, FriendRequestStatus.PENDING);
-        when(friendRequestRepository.findBySenderAndReceiver(user, otherUser)).thenReturn(Optional.of(friendRequest));
+        when(friendRequestCrudRepository.findBySenderAndReceiver(user, otherUser)).thenReturn(Optional.of(friendRequest));
 
         // Act
         Optional<FriendRequest> request = friendRequestService.getFriendRequestForUser(token, userId);
@@ -99,8 +108,8 @@ public class FriendRequestServiceImplTest {
 
         when(userService.getUserFromToken(token)).thenReturn(sender);
         when(userService.getUserById(receiverId)).thenReturn(receiver);
-        when(friendRequestRepository.findBySenderAndReceiver(sender, receiver)).thenReturn(Optional.empty());
-        when(friendRequestRepository.save(any(FriendRequest.class))).thenReturn(request);
+        when(friendRequestCrudRepository.findBySenderAndReceiver(sender, receiver)).thenReturn(Optional.empty());
+        when(friendRequestCrudRepository.save(any(FriendRequest.class))).thenReturn(request);
 
         // Act
         FriendRequest sentRequest = friendRequestService.sendFriendRequest(token, receiverId);
@@ -126,10 +135,10 @@ public class FriendRequestServiceImplTest {
 
         when(userService.getUserFromToken(token)).thenReturn(sender);
         when(userService.getUserById(receiverId)).thenReturn(receiver);
-        when(friendRequestRepository.findBySenderAndReceiver(sender, receiver)).thenReturn(
+        when(friendRequestCrudRepository.findBySenderAndReceiver(sender, receiver)).thenReturn(
                 Optional.of(request)
         );
-        when(friendRequestRepository.save(any(FriendRequest.class))).thenReturn(request);
+        when(friendRequestCrudRepository.save(any(FriendRequest.class))).thenReturn(request);
 
         // Act
         FriendRequest sentRequest = friendRequestService.sendFriendRequest(token, receiverId);

@@ -10,13 +10,14 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * The controller manages operations related to friend requests, such as sending requests, accepting, rejecting, and canceling them.
@@ -51,15 +52,18 @@ public class FriendRequestController {
      * Retrieves a list of pending friend requests for the authenticated user.
      *
      * @param token The authorization token for the user.
-     * @return A list of UserSearchDto representing users who have sent friend requests.
+     * @param page The page to display
+     * @param size The number of elements to get
+     * @return A Page of UserSearchDto representing users who have sent friend requests.
      */
     @GetMapping("/pending")
-    public ResponseEntity<List<UserSearchDto>> getPendingFriendRequests(@RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<Page<UserSearchDto>> getPendingFriendRequests(@RequestHeader(name = "Authorization") String token,
+                                                                        @RequestParam(defaultValue = "0") int page,
+                                                                        @RequestParam(defaultValue = "10") int size) {
         try {
-            List<UserSearchDto> pendingRequests = friendRequestService.getPendingFriendRequests(token)
-                    .stream()
-                    .map(request -> convertToUserDTO(request.getSender()))
-                    .collect(Collectors.toList());
+            Pageable pageable = PageRequest.of(page, size);
+            Page<UserSearchDto> pendingRequests = friendRequestService.getPendingFriendRequests(token, pageable)
+                    .map(request -> convertToUserDTO(request.getSender()));
             return ResponseEntity.ok(pendingRequests);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

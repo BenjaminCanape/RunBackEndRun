@@ -4,6 +4,7 @@ import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.Location;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.model.enums.ActivityType;
+import canape.benjamin.runflutterrun.repositories.ActivityCrudRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityLikeRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityRepository;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,6 +39,9 @@ class ActivityServiceImplTest {
     private ActivityRepository activityRepository;
 
     @Mock
+    private ActivityCrudRepository activityCrudRepository;
+
+    @Mock
     private IFriendRequestService friendRequestService;
 
     @Mock
@@ -45,14 +50,14 @@ class ActivityServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        activityService = new ActivityServiceImpl( userRepository, activityRepository, friendRequestService, activityLikeRepository, userService);
+        activityService = new ActivityServiceImpl( userRepository, activityRepository, activityCrudRepository, friendRequestService, activityLikeRepository, userService);
     }
 
     @Test
     void create_ReturnsCreatedActivity() {
         // Mock
         Activity activity = createSampleActivity();
-        when(activityRepository.save(activity)).thenReturn(activity);
+        when(activityCrudRepository.save(activity)).thenReturn(activity);
 
         // Call
         Activity createdActivity = activityService.create(activity);
@@ -60,22 +65,25 @@ class ActivityServiceImplTest {
         // Verify
         assertNotNull(createdActivity);
         assertEquals(activity, createdActivity);
-        verify(activityRepository).save(activity);
+        verify(activityCrudRepository).save(activity);
     }
 
     @Test
     void getAllWithToken_ReturnsActivitiesForUser() {
         // Mock
+        Pageable pageable = PageRequest.of(0, 10);
         String token = "mock_token";
         String username = "mock_username";
         User user = new User();
         Activity activity1 = createSampleActivity();
         Activity activity2 = createSampleActivity();
+        Page<Activity> page = new PageImpl<>(List.of(activity1, activity2));
+
         when(userService.getUserFromToken(token)).thenReturn(user);
-        when(activityRepository.findAllByOrderByStartDatetimeDescAndUser(user)).thenReturn(List.of(activity1, activity2));
+        when(activityRepository.findAllByOrderByStartDatetimeDescAndUser(user, pageable)).thenReturn(page);
 
         // Call
-        Iterable<Activity> activities = activityService.getAll(token);
+        Iterable<Activity> activities = activityService.getAll(token, pageable);
 
         // Verify
         assertNotNull(activities);
@@ -94,7 +102,7 @@ class ActivityServiceImplTest {
         Activity activity = createSampleActivity();
 
         when(userService.getUserFromToken(token)).thenReturn(user);
-        when(activityRepository.save(activity)).thenReturn(activity);
+        when(activityCrudRepository.save(activity)).thenReturn(activity);
 
         // Call
         Activity createdActivity = activityService.create(activity, token);
@@ -103,7 +111,7 @@ class ActivityServiceImplTest {
         assertNotNull(createdActivity);
         assertEquals(activity, createdActivity);
         assertEquals(user, activity.getUser());
-        verify(activityRepository).save(activity);
+        verify(activityCrudRepository).save(activity);
     }
 
     @Test
@@ -117,7 +125,7 @@ class ActivityServiceImplTest {
         Activity activity = createSampleActivity();
         activity.setUser(user);
         when(userService.getUserFromToken(token)).thenReturn(user);
-        when(activityRepository.findById(id)).thenReturn(Optional.of(activity));
+        when(activityCrudRepository.findById(id)).thenReturn(Optional.of(activity));
 
         // Call
         Activity result = activityService.getById(token, id);
@@ -136,7 +144,7 @@ class ActivityServiceImplTest {
         User user = new User();
         user.setId(1L);
         when(userService.getUserFromToken(token)).thenReturn(user);
-        when(activityRepository.findById(id)).thenReturn(Optional.empty());
+        when(activityCrudRepository.findById(id)).thenReturn(Optional.empty());
 
         // Call and verify
         assertThrows(EntityNotFoundException.class, () -> activityService.getById(token, id));
@@ -154,8 +162,8 @@ class ActivityServiceImplTest {
         existingActivity.setUser(user);
         updatedActivity.setUser(user);
         when(userService.getUserFromToken(token)).thenReturn(user);
-        when(activityRepository.findById(existingActivity.getId())).thenReturn(Optional.of(existingActivity));
-        when(activityRepository.save(existingActivity)).thenReturn(existingActivity);
+        when(activityCrudRepository.findById(existingActivity.getId())).thenReturn(Optional.of(existingActivity));
+        when(activityCrudRepository.save(existingActivity)).thenReturn(existingActivity);
 
         // Call
         Activity result = activityService.update(token, updatedActivity);
@@ -168,7 +176,7 @@ class ActivityServiceImplTest {
         assertEquals(updatedActivity.getStartDatetime(), existingActivity.getStartDatetime());
         assertEquals(updatedActivity.getEndDatetime(), existingActivity.getEndDatetime());
         assertEquals(updatedActivity.getSpeed(), existingActivity.getSpeed());
-        verify(activityRepository).save(existingActivity);
+        verify(activityCrudRepository).save(existingActivity);
     }
 
     @Test
@@ -181,7 +189,7 @@ class ActivityServiceImplTest {
         user.setId(1L);
         activity.setUser(user);
         when(userService.getUserFromToken(token)).thenReturn(user);
-        when(activityRepository.findById(activity.getId())).thenReturn(Optional.empty());
+        when(activityCrudRepository.findById(activity.getId())).thenReturn(Optional.empty());
 
         // Call and verify
         assertThrows(EntityNotFoundException.class, () -> activityService.update(token, activity));
@@ -198,13 +206,13 @@ class ActivityServiceImplTest {
         Activity activity = new Activity();
         activity.setUser(user);
         when(userService.getUserFromToken(token)).thenReturn(user);
-        when(activityRepository.findById(anyLong())).thenReturn(Optional.of(activity));
+        when(activityCrudRepository.findById(anyLong())).thenReturn(Optional.of(activity));
 
         // Call
         activityService.delete(token, id);
 
         // Verify
-        verify(activityRepository).deleteById(id);
+        verify(activityCrudRepository).deleteById(id);
     }
 
     // Helper method to create a sample Activity
