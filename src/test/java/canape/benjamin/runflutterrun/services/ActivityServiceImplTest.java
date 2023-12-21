@@ -80,7 +80,7 @@ class ActivityServiceImplTest {
         Page<Activity> page = new PageImpl<>(List.of(activity1, activity2));
 
         when(userService.getUserFromToken(token)).thenReturn(user);
-        when(activityRepository.findAllByOrderByStartDatetimeDescAndUser(user, pageable)).thenReturn(page);
+        when(activityRepository.findByUser(user, pageable)).thenReturn(page);
 
         // Call
         Iterable<Activity> activities = activityService.getAll(token, pageable);

@@ -59,7 +59,7 @@ public class ActivityServiceImpl implements IActivityService {
     @Override
     public Page<Activity> getAll(String token, Pageable pageable) {
         User user = userService.getUserFromToken(token);
-        return activityRepository.findAllByOrderByStartDatetimeDescAndUser(user, pageable);
+        return activityRepository.findByUser(user, pageable);
     }
 
     /**
@@ -74,7 +74,7 @@ public class ActivityServiceImpl implements IActivityService {
         User user = userService.getUserFromToken(token);
         List<User> friends = friendRequestService.getFriends(token);
         friends.add(user);
-        return activityRepository.findAllByOrderByStartDatetimeDescAndUsers(friends, pageable);
+        return activityRepository.findByUsers(friends, pageable);
     }
 
     /**
@@ -90,7 +90,7 @@ public class ActivityServiceImpl implements IActivityService {
         if (friendRequestService.areFriends(token, userId)) {
             Optional<User> otherUser = userRepository.findById(userId);
             if (otherUser.isPresent()) {
-                return activityRepository.findAllByOrderByStartDatetimeDescAndUser(otherUser.get(), pageable);
+                return activityRepository.findByUser(otherUser.get(), pageable);
             }
         }
 

@@ -46,16 +46,14 @@ public class ActivityController {
      * @param token The authorization token.
      * @param page The page to display
      * @param size The number of elements to get
-     * @param sort The sorting conf
      * @return A Page of ActivityDto objects.
      */
     @GetMapping(value = "/all", produces = "application/json")
     public ResponseEntity<Page<ActivityDto>> getAll(@RequestHeader(name = "Authorization") String token,
                                                     @RequestParam(defaultValue = "0") int page,
-                                                    @RequestParam(defaultValue = "10") int size,
-                                                    @RequestParam(defaultValue = "startDatetime,desc") String sort) {
+                                                    @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+            Pageable pageable = PageRequest.of(page, size, Sort.by("startDatetime").descending());
             Page<ActivityDto> activities = activityCrudService.getAll(token, pageable).map(
                     activity -> convertToDTO(token, activity, false, true)
             );
@@ -72,16 +70,14 @@ public class ActivityController {
      * @param token The authorization token
      * @param page The page to display
      * @param size The number of elements to get
-     * @param sort The sorting conf
      * @return A Page of ActivityDto objects.
      */
     @GetMapping(value = "/friends", produces = "application/json")
     public ResponseEntity<Page<ActivityDto>> getMineAndMyFriends(@RequestHeader(name = "Authorization") String token,
                                                                  @RequestParam(defaultValue = "0") int page,
-                                                                 @RequestParam(defaultValue = "10") int size,
-                                                                 @RequestParam(defaultValue = "startDatetime,desc") String sort) {
+                                                                 @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+            Pageable pageable = PageRequest.of(page, size, Sort.by("startDatetime").descending());
             Page<ActivityDto> activities = activityCrudService.getMineAndMyFriends(token, pageable).map(
                     activity -> convertToDTO(token, activity, false, true)
             );
@@ -98,16 +94,14 @@ public class ActivityController {
      * @param token The authorization token.
      * @param page The page to display
      * @param size The number of elements to get
-     * @param sort The sorting conf
      * @return A Page of ActivityDto objects.
      */
     @GetMapping(value = "/user/{id}", produces = "application/json")
     public ResponseEntity<Page<ActivityDto>> getByUser(@PathVariable long id, @RequestHeader(name = "Authorization") String token,
                                                        @RequestParam(defaultValue = "0") int page,
-                                                       @RequestParam(defaultValue = "10") int size,
-                                                       @RequestParam(defaultValue = "startDatetime,desc") String sort) {
+                                                       @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+            Pageable pageable = PageRequest.of(page, size, Sort.by("startDatetime").descending());
             Page<ActivityDto> activities = activityCrudService.getByUser(token, id, pageable).map(
                     activity -> convertToDTO(token, activity, false, true)
             );

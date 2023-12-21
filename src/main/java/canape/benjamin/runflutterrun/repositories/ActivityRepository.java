@@ -16,21 +16,14 @@ import java.util.List;
 public interface ActivityRepository extends PagingAndSortingRepository<Activity, Long> {
 
     /**
-     * Retrieves all activities sorted by start datetime in descending order.
-     *
-     * @return A Page of activities.
-     */
-    Page<Activity> findAllByOrderByStartDatetimeDesc(Pageable pageable);
-
-    /**
      * Retrieves all activities associated with a specific user, sorted by start datetime in descending order.
      *
      * @param user     The user for which to retrieve activities.
      * @param pageable Pageable object for pagination.
      * @return A Page of activities.
      */
-    @Query("select a from Activity a where a.user = :user order by a.startDatetime DESC")
-    Page<Activity> findAllByOrderByStartDatetimeDescAndUser(@Param("user") User user, Pageable pageable);
+    @Query("select a from Activity a where a.user = :user")
+    Page<Activity> findByUser(User user, Pageable pageable);
 
     /**
      * Retrieves all activities associated with specific users, sorted by start datetime in descending order.
@@ -39,6 +32,7 @@ public interface ActivityRepository extends PagingAndSortingRepository<Activity,
      * @param pageable Pageable object for pagination.
      * @return A Page of activities.
      */
-    @Query("select a from Activity a where a.user in :users order by a.startDatetime DESC")
-    Page<Activity> findAllByOrderByStartDatetimeDescAndUsers(@Param("users") List<User> users, Pageable pageable);
+    @Query("select a from Activity a where a.user in :users")
+    Page<Activity> findByUsers(@Param("users") List<User> users, Pageable pageable);
 }
+
