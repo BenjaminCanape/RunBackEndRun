@@ -4,6 +4,7 @@ import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.ActivityComment;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.repositories.ActivityCommentRepository;
+import canape.benjamin.runflutterrun.repositories.ActivityCrudRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityRepository;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
 import canape.benjamin.runflutterrun.security.jwt.JwtUtils;
@@ -24,7 +25,7 @@ class ActivityCommentServiceImplTest {
     private IUserService userService;
 
     @Mock
-    private ActivityRepository activityRepository;
+    private ActivityCrudRepository activityRepository;
 
     @Mock
     private ActivityCommentRepository activityCommentRepository;

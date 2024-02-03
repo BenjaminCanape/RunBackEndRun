@@ -3,6 +3,7 @@ package canape.benjamin.runflutterrun.services.impl;
 import canape.benjamin.runflutterrun.model.Activity;
 import canape.benjamin.runflutterrun.model.ActivityLike;
 import canape.benjamin.runflutterrun.model.User;
+import canape.benjamin.runflutterrun.repositories.ActivityCrudRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityLikeRepository;
 import canape.benjamin.runflutterrun.repositories.ActivityRepository;
 import canape.benjamin.runflutterrun.repositories.UserRepository;
@@ -11,6 +12,8 @@ import canape.benjamin.runflutterrun.services.IFriendRequestService;
 import canape.benjamin.runflutterrun.services.IUserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
 
@@ -24,6 +27,7 @@ public class ActivityServiceImpl implements IActivityService {
 
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
+    private final ActivityCrudRepository activityCrudRepository;
     private final IFriendRequestService friendRequestService;
     private final ActivityLikeRepository activityLikeRepository;
     private final IUserService userService;
@@ -42,33 +46,35 @@ public class ActivityServiceImpl implements IActivityService {
     @Override
     public Activity create(Activity activity) {
         Activity activityWithMetrics = calculateMetrics(activity);
-        return activityRepository.save(activityWithMetrics);
+        return activityCrudRepository.save(activityWithMetrics);
     }
 
     /**
      * Retrieve all activities for a specific user in descending order of start datetime.
      *
      * @param token the authentication token of the user
+     * @param pageable the pagination information
      * @return Iterable of activities
      */
     @Override
-    public Iterable<Activity> getAll(String token) {
+    public Page<Activity> getAll(String token, Pageable pageable) {
         User user = userService.getUserFromToken(token);
-        return activityRepository.findAllByOrderByStartDatetimeDescAndUser(user);
+        return activityRepository.findByUser(user, pageable);
     }
 
     /**
      * Retrieve all my activities and my friends in descending order of start datetime.
      *
      * @param token the authentication token of the user
+     * @param pageable the pagination information
      * @return Iterable of activities
      */
     @Override
-    public Iterable<Activity> getMineAndMyFriends(String token) {
+    public Page<Activity> getMineAndMyFriends(String token, Pageable pageable) {
         User user = userService.getUserFromToken(token);
         List<User> friends = friendRequestService.getFriends(token);
         friends.add(user);
-        return activityRepository.findAllByOrderByStartDatetimeDescAndUsers(friends);
+        return activityRepository.findByUsers(friends, pageable);
     }
 
     /**
@@ -76,14 +82,15 @@ public class ActivityServiceImpl implements IActivityService {
      *
      * @param token the authentication token of the user
      * @param userId user id
+     * @param pageable the pagination information
      * @return Iterable of activities
      */
     @Override
-    public Iterable<Activity> getByUser(String token, Long userId) {
+    public Page<Activity> getByUser(String token, Long userId, Pageable pageable) {
         if (friendRequestService.areFriends(token, userId)) {
             Optional<User> otherUser = userRepository.findById(userId);
             if (otherUser.isPresent()) {
-                return activityRepository.findAllByOrderByStartDatetimeDescAndUser(otherUser.get());
+                return activityRepository.findByUser(otherUser.get(), pageable);
             }
         }
 
@@ -102,7 +109,7 @@ public class ActivityServiceImpl implements IActivityService {
         User user = userService.getUserFromToken(token);
         Activity activityWithMetrics = calculateMetrics(activity);
         activityWithMetrics.setUser(user);
-        return activityRepository.save(activityWithMetrics);
+        return activityCrudRepository.save(activityWithMetrics);
     }
 
     /**
@@ -116,7 +123,7 @@ public class ActivityServiceImpl implements IActivityService {
     @Override
     public Activity getById(String token, long id) {
         User user = userService.getUserFromToken(token);
-        Activity activity = activityRepository.findById(id).orElseThrow(
+        Activity activity = activityCrudRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Activity with id: " + id + " is not available."));
 
         if (activity.getUser().getId().equals(user.getId())){
@@ -139,7 +146,7 @@ public class ActivityServiceImpl implements IActivityService {
     public Activity update(String token, Activity activity) {
         User user = userService.getUserFromToken(token);
 
-        Activity existingActivity = activityRepository.findById(activity.getId()).orElseThrow(
+        Activity existingActivity = activityCrudRepository.findById(activity.getId()).orElseThrow(
                 () -> new EntityNotFoundException("Activity with id: " + activity.getId() + " is not available."));
 
         if(existingActivity.getUser().getId().equals(user.getId())) {
@@ -150,7 +157,7 @@ public class ActivityServiceImpl implements IActivityService {
             existingActivity.setEndDatetime(updatedActivity.getEndDatetime());
             existingActivity.setSpeed(updatedActivity.getSpeed());
 
-            return activityRepository.save(existingActivity);
+            return activityCrudRepository.save(existingActivity);
         }
 
         throw new SecurityException("You don't have the right to update this activity");
@@ -169,7 +176,7 @@ public class ActivityServiceImpl implements IActivityService {
 
         Activity activity = getById(token, id);
         if(activity.getUser().getId().equals(user.getId())) {
-            activityRepository.deleteById(id);
+            activityCrudRepository.deleteById(id);
             return;
         }
 
@@ -186,7 +193,7 @@ public class ActivityServiceImpl implements IActivityService {
     public void like(Long id, String token) {
         User user = userService.getUserFromToken(token);
 
-        Activity activity = activityRepository.findById(id)
+        Activity activity = activityCrudRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity not found"));
 
         Optional<ActivityLike> optionalActivityLike = activityLikeRepository.findByActivityAndUser(activity, user);
@@ -210,7 +217,7 @@ public class ActivityServiceImpl implements IActivityService {
     public void dislike(Long id, String token) {
         User user = userService.getUserFromToken(token);
 
-        Activity activity = activityRepository.findById(id)
+        Activity activity = activityCrudRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity not found"));
 
         activityLikeRepository.findByActivityAndUser(activity, user)
@@ -239,7 +246,7 @@ public class ActivityServiceImpl implements IActivityService {
     public boolean currentUserLiked(Long id, String token) {
         User user = userService.getUserFromToken(token);
 
-        Activity activity = activityRepository.findById(id)
+        Activity activity = activityCrudRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity not found"));
 
         return activityLikeRepository.findByActivityAndUser(activity, user).isPresent();

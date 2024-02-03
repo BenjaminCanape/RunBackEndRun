@@ -3,12 +3,16 @@ package canape.benjamin.runflutterrun.services.impl;
 import canape.benjamin.runflutterrun.model.FriendRequest;
 import canape.benjamin.runflutterrun.model.User;
 import canape.benjamin.runflutterrun.model.enums.FriendRequestStatus;
+import canape.benjamin.runflutterrun.repositories.FriendRequestCrudRepository;
 import canape.benjamin.runflutterrun.repositories.FriendRequestRepository;
 import canape.benjamin.runflutterrun.services.IFriendRequestService;
 import canape.benjamin.runflutterrun.services.IUserService;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,17 +28,19 @@ import java.util.Optional;
 public class FriendRequestServiceImpl implements IFriendRequestService {
 
     private final FriendRequestRepository friendRequestRepository;
+    private final FriendRequestCrudRepository friendRequestCrudRepository;
     private final IUserService userService;
 
     /**
      * Retrieves a list of pending friend requests for the user associated with the given token.
      *
      * @param token The authorization token of the user.
+     * @param pageable the pagination information
      * @return A list of FriendRequest objects representing pending friend requests.
      */
-    public List<FriendRequest> getPendingFriendRequests(String token) {
+    public Page<FriendRequest> getPendingFriendRequests(String token, Pageable pageable) {
         User user = userService.getUserFromToken(token);
-        return friendRequestRepository.findByReceiverAndStatus(user, FriendRequestStatus.PENDING);
+        return friendRequestRepository.findByReceiverAndStatus(user, FriendRequestStatus.PENDING, pageable);
     }
 
     /**
@@ -48,7 +54,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
     public Optional<FriendRequest> getFriendRequestForUser(String token, Long userId) {
         User user = userService.getUserFromToken(token);
         User otherUser = userService.getUserById(userId);
-        return friendRequestRepository.findBySenderAndReceiver(user, otherUser);
+        return friendRequestCrudRepository.findBySenderAndReceiver(user, otherUser);
     }
 
     /**
@@ -64,11 +70,11 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
         User sender = userService.getUserFromToken(token);
         User receiver = userService.getUserById(receiverId);
 
-        FriendRequest existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(sender, receiver)
+        FriendRequest existingFriendRequest = friendRequestCrudRepository.findBySenderAndReceiver(sender, receiver)
                 .orElseGet(() -> createFriendRequest(sender, receiver));
 
         existingFriendRequest.setStatus(FriendRequestStatus.PENDING);
-        return friendRequestRepository.save(existingFriendRequest);
+        return friendRequestCrudRepository.save(existingFriendRequest);
     }
 
     /**
@@ -122,7 +128,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
         User user = userService.getUserFromToken(token);
         User receiver = userService.getUserById(userId);
 
-        Optional<FriendRequest> existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, receiver);
+        Optional<FriendRequest> existingFriendRequest = friendRequestCrudRepository.findBySenderAndReceiver(user, receiver);
 
         return existingFriendRequest.isPresent() && existingFriendRequest.get().getStatus() == FriendRequestStatus.ACCEPTED;
     }
@@ -136,7 +142,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
     public List<User> getFriends(String token) {
         User user = userService.getUserFromToken(token);
 
-        List<FriendRequest> friendRequests = friendRequestRepository.findByUserAndStatus(user, FriendRequestStatus.ACCEPTED);
+        List<FriendRequest> friendRequests = friendRequestCrudRepository.findByUserAndStatus(user, FriendRequestStatus.ACCEPTED);
 
         List<User> friends = new ArrayList<>();
         for (FriendRequest item : friendRequests) {
@@ -177,7 +183,7 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
         User user = userService.getUserFromToken(token);
         User otherUser = userService.getUserById(userId);
 
-        Optional<FriendRequest> existingFriendRequest = friendRequestRepository.findBySenderAndReceiver(user, otherUser);
+        Optional<FriendRequest> existingFriendRequest = friendRequestCrudRepository.findBySenderAndReceiver(user, otherUser);
 
         if (existingFriendRequest.isEmpty()) {
             throw new EntityNotFoundException("Friend request doesn't exist.");
@@ -190,6 +196,6 @@ public class FriendRequestServiceImpl implements IFriendRequestService {
         }
 
         friendRequest.setStatus(status);
-        return friendRequestRepository.save(friendRequest);
+        return friendRequestCrudRepository.save(friendRequest);
     }
 }

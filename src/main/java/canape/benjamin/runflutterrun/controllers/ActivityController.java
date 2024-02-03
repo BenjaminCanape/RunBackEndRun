@@ -10,6 +10,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,14 +44,20 @@ public class ActivityController {
      * Retrieves all activities.
      *
      * @param token The authorization token.
-     * @return A list of ActivityDto objects.
+     * @param page The page to display
+     * @param size The number of elements to get
+     * @return A Page of ActivityDto objects.
      */
     @GetMapping(value = "/all", produces = "application/json")
-    public ResponseEntity<List<ActivityDto>> getAll(@RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<Page<ActivityDto>> getAll(@RequestHeader(name = "Authorization") String token,
+                                                    @RequestParam(defaultValue = "0") int page,
+                                                    @RequestParam(defaultValue = "10") int size) {
         try {
-            Iterable<Activity> activities = activityCrudService.getAll(token);
-            List<ActivityDto> activityDtos = getActivityDtoList(token, activities, false, true);
-            return ResponseEntity.ok().body(activityDtos);
+            Pageable pageable = PageRequest.of(page, size, Sort.by("startDatetime").descending());
+            Page<ActivityDto> activities = activityCrudService.getAll(token, pageable).map(
+                    activity -> convertToDTO(token, activity, false, true)
+            );
+            return ResponseEntity.ok().body(activities);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -57,15 +67,21 @@ public class ActivityController {
     /**
      * Retrieves my activities and my friends.
      *
-     * @param token The authorization token.
-     * @return A list of ActivityDto objects.
+     * @param token The authorization token
+     * @param page The page to display
+     * @param size The number of elements to get
+     * @return A Page of ActivityDto objects.
      */
     @GetMapping(value = "/friends", produces = "application/json")
-    public ResponseEntity<List<ActivityDto>> getMineAndMyFriends(@RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<Page<ActivityDto>> getMineAndMyFriends(@RequestHeader(name = "Authorization") String token,
+                                                                 @RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "10") int size) {
         try {
-            Iterable<Activity> activities = activityCrudService.getMineAndMyFriends(token);
-            List<ActivityDto> activityDtos = getActivityDtoList(token, activities, false, true);
-            return ResponseEntity.ok().body(activityDtos);
+            Pageable pageable = PageRequest.of(page, size, Sort.by("startDatetime").descending());
+            Page<ActivityDto> activities = activityCrudService.getMineAndMyFriends(token, pageable).map(
+                    activity -> convertToDTO(token, activity, false, true)
+            );
+            return ResponseEntity.ok().body(activities);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -76,14 +92,20 @@ public class ActivityController {
      *
      * @param id The ID of the user.
      * @param token The authorization token.
-     * @return A list of ActivityDto objects.
+     * @param page The page to display
+     * @param size The number of elements to get
+     * @return A Page of ActivityDto objects.
      */
     @GetMapping(value = "/user/{id}", produces = "application/json")
-    public ResponseEntity<List<ActivityDto>> getByUser(@PathVariable long id, @RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<Page<ActivityDto>> getByUser(@PathVariable long id, @RequestHeader(name = "Authorization") String token,
+                                                       @RequestParam(defaultValue = "0") int page,
+                                                       @RequestParam(defaultValue = "10") int size) {
         try {
-            Iterable<Activity> activities = activityCrudService.getByUser(token, id);
-            List<ActivityDto> activityDtos = getActivityDtoList(token, activities, false, true);
-            return ResponseEntity.ok().body(activityDtos);
+            Pageable pageable = PageRequest.of(page, size, Sort.by("startDatetime").descending());
+            Page<ActivityDto> activities = activityCrudService.getByUser(token, id, pageable).map(
+                    activity -> convertToDTO(token, activity, false, true)
+            );
+            return ResponseEntity.ok().body(activities);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }

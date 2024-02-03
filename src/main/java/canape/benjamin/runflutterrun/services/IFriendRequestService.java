@@ -2,6 +2,8 @@ package canape.benjamin.runflutterrun.services;
 
 import canape.benjamin.runflutterrun.model.FriendRequest;
 import canape.benjamin.runflutterrun.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +22,7 @@ public interface IFriendRequestService {
      * @param token The authorization token of the user.
      * @return A list of FriendRequest objects representing pending friend requests.
      */
-    List<FriendRequest> getPendingFriendRequests(String token);
+    Page<FriendRequest> getPendingFriendRequests(String token, Pageable pageable) ;
 
     /**
      * Retrieves a specific friend request sent to the user associated with the given token and the specified userId.
